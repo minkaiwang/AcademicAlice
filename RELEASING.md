@@ -14,10 +14,10 @@
    ```powershell
    python scripts/generate_doc_portal.py
    ```
-   Validate `AA使用必读.html`，确保贡献/赞助/文档卡片刷新。
+   Validate `AA使用必读.html`，确保贡献列表与 DOC 区卡片已随 `doc/` 刷新。
 4. **Static checks**  
    ```powershell
-   python -m compileall config lib install_deps.py scripts
+   python -m compileall config lib install/install_deps.py scripts
    python scripts/package_release.py --dry-run
    ```
    The dry-run prints the final manifest and ensures runtime-only files (logs, resc/user, models) are excluded.

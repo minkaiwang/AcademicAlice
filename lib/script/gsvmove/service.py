@@ -19,6 +19,8 @@ from pathlib import Path
 
 import requests
 
+from lib.script.app.win_subprocess import run as _subprocess_run_hidden
+
 try:
     from packaging.requirements import Requirement
 except Exception:
@@ -583,7 +585,7 @@ class GsvmoveService:
                 cmd = ["taskkill", "/PID", str(pid), "/T"]
                 if force:
                     cmd.append("/F")
-                result = subprocess.run(
+                result = _subprocess_run_hidden(
                     cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -603,7 +605,7 @@ class GsvmoveService:
             "Select-Object -ExpandProperty ProcessId"
         )
         try:
-            result = subprocess.run(
+            result = _subprocess_run_hidden(
                 ["powershell", "-NoProfile", "-Command", command],
                 capture_output=True,
                 text=True,

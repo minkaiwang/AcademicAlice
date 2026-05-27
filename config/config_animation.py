@@ -23,6 +23,7 @@ GIF_FILES = [
     'resc/GIF/wave.gif',
 ]
 BEHAVIOR = {
+    'auto_wander_enabled': True,  # 是否允许桌宠自动漫游（关闭后不再自行走来走去）
     'auto_behavior_interval': (10000, 20000),  # 自动行为间隔（毫秒）
     'auto_wander_interval':   (5000, 5000),    # 自动漫游间隔（毫秒）
     'wander_near_speaker_radius': 150,

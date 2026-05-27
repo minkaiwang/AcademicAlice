@@ -64,7 +64,20 @@ class TopmostManager:
 
     def register(self, widget) -> None:
         """注册一个需要保持极高绘制优先级的窗口（弱引用，不阻止 GC）。"""
+        self.unregister(widget)
         self._windows.append(weakref.ref(widget))
+
+    def unregister(self, widget) -> None:
+        """取消注册，不再对该窗口执行 HWND_TOPMOST 重申。"""
+        alive: list[weakref.ref] = []
+        for ref in self._windows:
+            w = ref()
+            if w is None:
+                continue
+            if w is widget:
+                continue
+            alive.append(ref)
+        self._windows = alive
 
     def enforce_on_frame(self) -> None:
         """

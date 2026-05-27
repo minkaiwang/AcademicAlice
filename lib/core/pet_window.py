@@ -72,6 +72,8 @@ class PetWindow(BaseEntity):
 
         # 鼠标穿透状态
         self._clickthrough = False
+        self._stay_on_top_poll = 0
+        self._cached_effective_top: bool | None = None
 
         # 穿透模式下的鼠标距离检测
         self._restore_btn_threshold = scale_px(100, min_abs=1)  # 鼠标靠近阈值（像素）
@@ -154,6 +156,7 @@ class PetWindow(BaseEntity):
 
         # 鈹€鈹€ 鍒濆浣嶇疆 / UI / 绐楀彛灞炴€?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
         setup_pet_window(self)
+        self._cached_effective_top = self._effective_pet_stays_on_top()
         attach_pet_window_ui(self, on_close=self._request_app_quit)
 
         # 鎭㈠绌块€忔寜閽湪鍚敤鏃舵寜闇€鍒涘缓
@@ -253,47 +256,60 @@ class PetWindow(BaseEntity):
 
         # ?? UI ??????? UI_CREATE ?????? PetWindow ??
 
-    def _handle_clickthrough_toggle(self, event):
-        """处理鼠标穿透模式切换事件"""
-        enabled = event.data.get('enabled', False)
-        self._clickthrough = enabled
+    def _effective_pet_stays_on_top(self) -> bool:
+        """穿透模式下始终置顶；否则由控制面板 UI['pet_stays_on_top'] 决定。"""
+        if self._clickthrough:
+            return True
+        return bool(UI.get("pet_stays_on_top", True))
 
-        # 保存基础窗口标志
-        base_flags = Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool
-
-        if enabled:
-            # 启用鼠标穿透
-            # 先隐藏窗口
-            self.hide()
-            # 设置穿透属性
+    def _sync_pet_stay_on_top_window_flags(self, *, force: bool = False) -> None:
+        """根据穿透与「主桌宠置顶」配置重建窗口标志，并同步 TopmostManager。"""
+        eff = self._effective_pet_stays_on_top()
+        if not force and eff == self._cached_effective_top:
+            return
+        self._cached_effective_top = eff
+        was_visible = self.isVisible()
+        self.hide()
+        if self._clickthrough:
             self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
-            # 移除 WindowSystemMenuHint 标志，因为它可能与穿透属性冲突
-            self.setWindowFlags(base_flags)
-            # 显示窗口
+            flags = Qt.FramelessWindowHint | Qt.Tool | Qt.WindowStaysOnTopHint
+        else:
+            self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+            flags = Qt.FramelessWindowHint | Qt.Tool
+            if eff:
+                flags |= Qt.WindowStaysOnTopHint
+            flags |= Qt.WindowSystemMenuHint
+        self.setWindowFlags(flags)
+        if was_visible:
             self.show()
 
-            # 重置恢复按钮创建标志，让tick检测逻辑决定何时创建
+        if eff:
+            get_topmost_manager().register(self)
+        else:
+            get_topmost_manager().unregister(self)
+
+        try:
+            self._event_center.publish(
+                Event(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, {"stays_on_top": eff})
+            )
+        except Exception:
+            pass
+
+        if self._clickthrough:
             self._restore_btn_created = False
             self._restore_btn_hover_start_ts = None
         else:
-            # 禁用鼠标穿透
-            # 先隐藏窗口
-            self.hide()
-            # 设置非穿透属性
-            self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
-            # 恢复 WindowSystemMenuHint 标志（确保 mouseMoveEvent 能够正确触发）
-            self.setWindowFlags(base_flags | Qt.WindowSystemMenuHint)
-            # 显示窗口
-            self.show()
-
-            # 关闭恢复穿透按钮
             if self._restore_btn is not None:
                 self._restore_btn.hide()
                 self._restore_btn = None
-
-            # 重置恢复按钮创建标志
             self._restore_btn_created = False
             self._restore_btn_hover_start_ts = None
+
+    def _handle_clickthrough_toggle(self, event):
+        """处理鼠标穿透模式切换事件"""
+        self._clickthrough = bool(event.data.get("enabled", False))
+        self._cached_effective_top = None
+        self._sync_pet_stay_on_top_window_flags(force=True)
 
     def _change_state(self, new_state: str):
         """切换状态"""
@@ -600,9 +616,11 @@ class PetWindow(BaseEntity):
         """处理帧事件 - 用于窗口位置更新"""
         if self._movement.is_moving:
             self._movement.update_frame(self.frameGeometry().topLeft())
-        # 每帧即时置顶（Qt 层）+ 每 0.5s 对全部注册窗口重申 Win32 HWND_TOPMOST
-        # 注意：穿透模式下仍需置顶以保证桌宠可见，只是鼠标事件穿透
-        self.raise_()
+        self._stay_on_top_poll = (self._stay_on_top_poll + 1) % 30
+        if self._stay_on_top_poll == 0:
+            self._sync_pet_stay_on_top_window_flags(force=False)
+        if self._effective_pet_stays_on_top():
+            self.raise_()
         get_topmost_manager().enforce_on_frame()
 
     def _handle_tick_event(self, event):

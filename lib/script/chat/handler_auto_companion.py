@@ -12,7 +12,10 @@ from .vision_capture import capture_screen
 logger = get_logger(__name__)
 
 AUTO_COMPANION_BASELINE_INTERVAL_MS = (120000, 360000)
-AUTO_COMPANION_PROMPT = '(仔细观察屏幕,然后简要分析漂泊者现在在做什么呢?)'
+# 使用简体中文：避免英文提示导致模型用英文描述屏幕
+AUTO_COMPANION_PROMPT = (
+    "（请结合当前屏幕截图：用一两句简体中文概括用户大致在做什么；若无把握则说明不确定，并保持简短。）"
+)
 
 
 def _resolve_auto_companion_interval(interval_value) -> tuple[int, int]:

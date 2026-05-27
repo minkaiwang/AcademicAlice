@@ -48,17 +48,20 @@ class StartExitAnimation:
         """
         import subprocess
 
-        # 创建动画播放脚本
-        player_script = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
-            'lib', 'script', 'SEanima', 'animation_player.py'
-        )
+        # 冻结 exe 下 sys.executable 为本程序：不可再跑完整 main()（会触发单实例弹窗），须走 qt_desktop_pet 的动画子模式。
+        if getattr(sys, 'frozen', False):
+            cmd = [sys.executable, '--deskpet-animation-player', animation_type]
+        else:
+            player_script = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))),
+                'lib',
+                'script',
+                'SEanima',
+                'animation_player.py',
+            )
+            cmd = [sys.executable, player_script, animation_type]
 
-        # 启动子进程播放动画（流式加载）
-        subprocess.Popen(
-            [sys.executable, player_script, animation_type],
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        subprocess.Popen(cmd, creationflags=subprocess.CREATE_NO_WINDOW)
 
     def play_start(self):
         """主动播放启动动画。"""

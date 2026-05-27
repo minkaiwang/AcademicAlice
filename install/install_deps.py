@@ -1,7 +1,7 @@
-﻿# -*- coding: utf-8 -*-
-"""Flying Snow Velvet LTS - Install dependencies and launch.
+# -*- coding: utf-8 -*-
+"""学术爱丽丝（学术桌面助手）— 依赖安装与启动器。
 
-流程:
+基于原 Flying Snow Velvet LTS 安装流程；流程:
 1. 扫描系统 Python, 选择可用且版本最优的解释器.
 2. 若缺少 pip, 自动尝试安装.
 3. 评估镜像延迟并按优先级安装依赖.
@@ -11,6 +11,8 @@
 5. 下载 Vosk 中/英文模型到 resc/models/vosk-model-small-*/.
 6. 准备 yuanbao-free-api 本地中转服务资源.
 7. 启动主程序.
+
+命令行：在参数中加入 `--no-launch` 可只安装依赖并写入 py.ini、不自动启动主程序。
 """
 
 import configparser
@@ -27,7 +29,8 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 
-PROJECT_ROOT = Path(__file__).parent
+# 本脚本位于 install/，仓库根为其上一级（与 py.ini、lib、resc 同级）
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # 最低支持 Python 版本
 MIN_VERSION = (3, 7, 0)
@@ -624,7 +627,7 @@ def _install_one(python_exe, pkg, mirrors):
 
 
 def install_all(python_exe, mirrors):
-    _print_stage(3, "检查并安装桌宠/元宝依赖...")
+    _print_stage(3, "检查并安装主程序/元宝依赖...")
     failed = []
 
     for pkg, desc, import_checks in DEPENDENCIES:
@@ -900,7 +903,7 @@ def _stream_download_with_progress(url, dest_path, *, label, timeout=30, chunk_s
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "FlyingSnowVelvetInstaller/1.0",
+            "User-Agent": "AcademicAliceDeskPetInstaller/1.0",
             "Accept": "application/zip, application/octet-stream, */*",
         },
     )
@@ -1035,7 +1038,7 @@ def ensure_vosk_models():
 
 def launch(python_exe):
     """Launch main script, prefer pythonw if available."""
-    _print_stage(6, "启动飞行雪绒桌宠...")
+    _print_stage(6, "启动学术爱丽丝桌面助手...")
 
     main_script = PROJECT_ROOT / "lib" / "core" / "qt_desktop_pet.py"
     if not main_script.exists():
@@ -1064,8 +1067,16 @@ def launch(python_exe):
 
 
 def main():
+    _root = str(PROJECT_ROOT.resolve())
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+    try:
+        from app_brand import APP_DISPLAY_NAME, APP_TAGLINE
+    except Exception:
+        APP_DISPLAY_NAME, APP_TAGLINE = ("学术爱丽丝", "学术桌面助手")
+
     print("=" * 56)
-    print(" Flying Snow Velvet LTS - Install and Launch")
+    print(f" {APP_DISPLAY_NAME} · {APP_TAGLINE} — 安装与启动")
     print("=" * 56)
     print()
 
@@ -1093,6 +1104,10 @@ def main():
         if not ensure_yuanbao_service_bundle(python_exe):
             _print_warn("YuanBao-Free-API 本地中转未准备完成，元宝 web 模式可能不可用")
 
+        if "--no-launch" in sys.argv[1:]:
+            print("\n[--no-launch] 已跳过自动启动主程序。按回车退出...")
+            input()
+            return
 
         if launch(python_exe):
             print("\nLauncher will close in 3 seconds...")

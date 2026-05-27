@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 PENDING_SYNC_SUFFIX = '.pending'
@@ -10,6 +11,11 @@ LOCAL_PENDING_DIRNAME = '.shared_pending'
 
 
 def get_project_root() -> Path:
+    """源码树为仓库根；PyInstaller 打包后为 `sys._MEIPASS`（内含 resc、config 等）。"""
+    if getattr(sys, "frozen", False):
+        mei = getattr(sys, "_MEIPASS", None)
+        if mei:
+            return Path(mei)
     return Path(__file__).resolve().parents[1]
 
 

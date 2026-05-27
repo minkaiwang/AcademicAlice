@@ -17,6 +17,8 @@ from urllib.parse import urlparse
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from lib.script.app.win_subprocess import run as _subprocess_run_hidden
+
 import config.ollama_config as oc
 from lib.core.event.center import Event, EventType, get_event_center
 from lib.core.logger import get_logger
@@ -318,10 +320,21 @@ def _missing_runtime_modules() -> list[str]:
     return missing
 
 
+def _format_yuanbao_missing_deps_hint(modules: list[str]) -> str:
+    """启动时缺依赖的气泡说明（用户常口述为「什么未安装」）。"""
+    joined = '、'.join(modules)
+    return (
+        f'检测到元宝本地中转依赖未安装或未就绪：{joined}。\n\n'
+        '请先运行仓库根目录「安装依赖.bat」（或 install/install_deps.py），装好后重启桌宠。\n\n'
+        '若暂时不用元宝 Web：请打开 config/ollama_config.py，将 FORCE_REPLY_MODE 改为 2（本地 Ollama）'
+        '或留空并按说明配置可用的 API_BASE_URL，保存后重启。'
+    )
+
+
 def _find_listener_pids(host: str, port: int) -> list[int]:
     target_suffixes = {f'{host}:{port}', f'127.0.0.1:{port}', f'localhost:{port}', f'0.0.0.0:{port}'}
     try:
-        result = subprocess.run(
+        result = _subprocess_run_hidden(
             ['netstat', '-ano', '-p', 'tcp'],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
@@ -357,7 +370,7 @@ def _find_listener_pids(host: str, port: int) -> list[int]:
 
 def _kill_process_by_pid(pid: int) -> bool:
     try:
-        result = subprocess.run(
+        result = _subprocess_run_hidden(
             ['taskkill', '/PID', str(pid), '/T', '/F'],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -382,6 +395,17 @@ class YuanbaoFreeApiService:
 
     def _on_app_pre_start(self, _event: Event):
         if not _should_manage_local_service():
+            return
+        missing = _missing_runtime_modules()
+        if missing:
+            text = _format_yuanbao_missing_deps_hint(missing)
+            logger.warning('[YuanbaoFreeApiService] 跳过启动本地中转：%s', '、'.join(missing))
+            self._ec.publish(Event(EventType.INFORMATION, {
+                'text': text,
+                'min': 28,
+                'max': 420,
+                'particle': False,
+            }))
             return
         self.ensure_service_ready()
 
@@ -705,12 +729,12 @@ class YuanbaoFreeApiService:
         _remove_qrcode_if_exists()
         missing_modules = _missing_runtime_modules()
         if missing_modules:
-            text = '元宝本地中转缺少依赖：' + ', '.join(missing_modules) + '；请先运行“安装依赖.bat”或重新执行 install_deps.py。'
-            logger.warning('[YuanbaoFreeApiService] %s', text)
+            text = _format_yuanbao_missing_deps_hint(missing_modules)
+            logger.warning('[YuanbaoFreeApiService] %s', text.replace('\n', ' '))
             self._ec.publish(Event(EventType.INFORMATION, {
                 'text': text,
-                'min': 18,
-                'max': 260,
+                'min': 28,
+                'max': 420,
                 'particle': False,
             }))
             return False
@@ -817,7 +841,7 @@ class YuanbaoFreeApiService:
         if proc.poll() is not None:
             return True
         try:
-            result = subprocess.run(
+            result = _subprocess_run_hidden(
                 ['taskkill', '/PID', str(proc.pid), '/T', '/F'],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,

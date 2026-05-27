@@ -173,6 +173,51 @@ class StreamMemory:
         entries.reverse()
         return entries
 
+    def count_parsed_entries(self) -> int:
+        """有效记忆行条数（与分页一致）。"""
+        n = 0
+        for raw_line in self._read_memory_lines():
+            item = self._parse_memory_line(raw_line)
+            if item and item.get("content"):
+                n += 1
+        return n
+
+    def get_entries_page(self, page: int, page_size: int) -> tuple[int, list[dict[str, str]]]:
+        """
+        按时间正序分页读取。
+        page 从 1 起；page_size 限制在 1..500。
+        返回 (总条数, 当前页条目列表)。
+        """
+        try:
+            ps = int(page_size)
+        except (TypeError, ValueError):
+            ps = 50
+        ps = max(1, min(500, ps))
+        try:
+            p = int(page)
+        except (TypeError, ValueError):
+            p = 1
+        p = max(1, p)
+        all_items: list[dict[str, str]] = []
+        for raw_line in self._read_memory_lines():
+            item = self._parse_memory_line(raw_line)
+            if item and item.get("content"):
+                all_items.append(item)
+        total = len(all_items)
+        start = (p - 1) * ps
+        return total, all_items[start : start + ps]
+
+    def clear_all_history(self) -> tuple[bool, str]:
+        """清空主路径与 legacy memory 文件。"""
+        try:
+            with self._write_lock:
+                for target in (self._memory_file, self._legacy_memory_file):
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text("", encoding="utf-8")
+            return True, ""
+        except OSError as e:
+            return False, str(e)
+
 
 _instance: Optional[StreamMemory] = None
 

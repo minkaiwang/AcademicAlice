@@ -1,6 +1,6 @@
 # Contributing Guide
 
-感谢你愿意为 **飞行雪绒 LTS** 提供帮助！本仓库目前仍在 LTS1.0.5 beta 迁移期，代码改动需要兼顾运行时稳定性与文档同步。请遵循以下约定：
+感谢你愿意为 **学术爱丽丝**（学术桌面助手，基于原飞行雪绒 LTS 代码）提供帮助！本仓库目前仍在 LTS1.0.5 beta 迁移期，代码改动需要兼顾运行时稳定性与文档同步。请遵循以下约定：
 
 > 许可说明：所有源码贡献将以 [Apache License 2.0](LICENSE-CODE) 授权，并自动附带相应的专利许可。`resc/` 等资源文件受 [LICENSE-ASSETS](LICENSE-ASSETS) 约束，如需替换/新增素材，请确认你拥有其分发权或已获授权。
 
@@ -9,7 +9,7 @@
 - 目标平台：Windows 10/11，Python 3.7–3.13（推荐 3.10+）。
 - 所有提交必须保持 UTF-8 / ASCII 源码（除非原文件已有其它编码）。
 - 任何新增/修改模块都需要对应的清理逻辑（事件 `unsubscribe`、任务回收、资源释放）。
-- 避免引入未记录的第三方依赖；如确有需要，请同时更新 `requirements.txt` 与 `install_deps.py::DEPENDENCIES`。
+- 避免引入未记录的第三方依赖；如确有需要，请同时更新 `install/requirements.txt` 与 `install/install_deps.py::DEPENDENCIES`。
 - 请勿提交个人密钥 / 账号信息；`config/ollama_config.py` 会优先读取环境变量，仓内默认留空。
 
 ## 2. 开发环境
@@ -19,7 +19,7 @@ py -3 -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-python -m compileall config lib install_deps.py scripts
+python -m compileall config lib install/install_deps.py scripts
 ```
 
 - 桌宠入口：`python/we pythonw lib/core/qt_desktop_pet.py`；
@@ -38,10 +38,10 @@ python -m compileall config lib install_deps.py scripts
 
 在提交 PR 之前请完成：
 
-- `python -m compileall config lib install_deps.py scripts`
+- `python -m compileall config lib install/install_deps.py scripts`
 - `python scripts/package_release.py --dry-run`（确认清单输出）
 - 手动运行桌宠一次，确认启动、命令框、音乐、AI、语音核心路径不回归
-- 若修改了 `doc/`、贡献/赞助清单或生成脚本，请重新执行 `python scripts/generate_doc_portal.py`
+- 若修改了 `doc/`、贡献名单（`开发贡献*.txt`）或 `scripts/generate_doc_portal.py`，请重新执行 `python scripts/generate_doc_portal.py`
 
 推荐附带说明你验证过的场景（AI 模式、音乐平台、语音识别、工具调度等）。
 

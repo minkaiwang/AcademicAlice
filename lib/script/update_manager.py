@@ -259,7 +259,7 @@ class UpdateManager:
 
     @staticmethod
     def _resolve_content_root(extracted_root: Path) -> Path:
-        markers = ("install_deps.py", "README.md", "lib")
+        markers = ("install/install_deps.py", "README.md", "lib")
         if any((extracted_root / marker).exists() for marker in markers):
             return extracted_root
         children = [

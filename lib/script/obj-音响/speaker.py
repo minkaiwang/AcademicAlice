@@ -10,8 +10,8 @@ from PyQt5.QtCore    import Qt, QPoint, QTimer
 from PyQt5.QtGui     import QPainter, QPixmap, QTransform
 
 from config.config           import BEHAVIOR, PHYSICS, SPEAKER_AUDIO
-from lib.core.topmost_manager import get_topmost_manager
 from lib.core.event.center    import get_event_center, EventType, Event
+from lib.core.scene_stays_on_top import apply_scene_widget_stays_on_top, read_pet_stays_on_top_setting
 from lib.core.physics         import get_physics_world, PhysicsBody
 from lib.core.particle_utils  import spawn_particle_at_point
 from lib.core.voice.sofa      import SofaSound
@@ -43,7 +43,7 @@ class Speaker(QWidget):
 
     - 左键按住拖拽：移动音响到任意位置，松开时继承拖拽速度（可"丢出"）
     - 左键双击：淡出消失
-    - 右键单击：水平镜像翻转
+    - 右键单击：打开 / 切换云音乐搜索 UI（锚定到本音响）
     - 物理弹跳：地面为屏幕高度 90%，最多弹跳 5 次，会与左右屏幕边界碰撞
     - 重新拖拽：中断物理、重置弹跳计数
     """
@@ -85,13 +85,7 @@ class Speaker(QWidget):
         # 频率强度（EMA 平滑后的频率响应，0.0–1.0）
         self._freq_intensity: float = 0.0
 
-        # ── 窗口属性 ──────────────────────────────────────────────
-        self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.X11BypassWindowManagerHint
-        )
+        # ── 窗口属性（置顶与主桌宠一致）──────────────────────────────
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFixedSize(*size)
@@ -122,11 +116,12 @@ class Speaker(QWidget):
         self._pending_click_ticks = 0
         self._double_click_ticks  = BEHAVIOR.get('double_click_ticks', 3)
 
+        self._event_center = get_event_center()
+        apply_scene_widget_stays_on_top(self, read_pet_stays_on_top_setting())
+        self._event_center.subscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
         self.move(position)
         self.show()
-        get_topmost_manager().register(self)
 
-        self._event_center = get_event_center()
         self._event_center.subscribe(EventType.TICK,                   self._on_tick_click)
         self._event_center.subscribe(EventType.FRAME,                  self._on_frame_frequency)
 
@@ -152,6 +147,9 @@ class Speaker(QWidget):
 
     def is_alive(self) -> bool:
         return self._alive
+
+    def _on_scene_stays_on_top_changed(self, event: Event) -> None:
+        apply_scene_widget_stays_on_top(self, bool(event.data.get("stays_on_top", True)))
 
     def set_gravity_enabled(self, enabled: bool):
         """
@@ -421,6 +419,7 @@ class Speaker(QWidget):
     def closeEvent(self, event):
         self._event_center.unsubscribe(EventType.TICK,                   self._on_tick_click)
         self._event_center.unsubscribe(EventType.FRAME,                  self._on_frame_frequency)
+        self._event_center.unsubscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
         self._fade_timer.stop()
         self._cleanup_physics()
         self._alive = False

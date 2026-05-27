@@ -272,7 +272,9 @@ class AnimationWindow(QWidget):
 
 # ── 入口 ─────────────────────────────────────────────────────────────
 
-if __name__ == '__main__':
+
+def main() -> None:
+    """独立进程入口：argv[1] 为 start / exit。亦可由 qt_desktop_pet 在 frozen 子进程中调用。"""
     if len(sys.argv) < 2:
         sys.exit(1)
 
@@ -284,6 +286,7 @@ if __name__ == '__main__':
     if 'QT_QPA_PLATFORM_PLUGIN_PATH' not in os.environ:
         try:
             import PyQt5.QtCore
+
             qt_path = os.path.dirname(PyQt5.QtCore.__file__)
             platforms_path = os.path.join(qt_path, 'Qt5', 'plugins', 'platforms')
             if os.path.exists(platforms_path):
@@ -302,3 +305,7 @@ if __name__ == '__main__':
 
     _log.info("[AnimationPlayer] 总启动耗时: %.2fs，进入事件循环", time.time() - t0)
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

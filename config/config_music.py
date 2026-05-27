@@ -38,7 +38,7 @@ SPEAKER_SEARCH_UI = {
 }
 CLOUD_MUSIC = {
     # 当前音乐平台（抽象层路由入口，后续可扩展 qq / kugou）
-    'provider': 'qq',
+    'provider': 'netease',
     'bitrate_ladder':   (320000, 192000, 128000),  # 音质梯度（bps）
     'default_volume':   0.2,                      # 默认音量（15%）
     'pygame_init_wait': 5,                         # pygame 初始化最大等待时间（秒）
@@ -51,6 +51,6 @@ CLOUD_MUSIC = {
     'cache_dir': 'resc/user/temp',
     # 本地音乐目录（支持绝对路径；相对路径按项目根目录解析，默认空）
     'local_music_dir': '',
-    # 启动鸣潮路径文件（支持 bat/lnk/exe，留空则走桌面快捷方式自动检测）
+    # 已弃用：原「启动鸣潮」路径（UI 已移除；键可仍被旧配置读取，勿再依赖）
     'launch_wuwa_path': '',
 }

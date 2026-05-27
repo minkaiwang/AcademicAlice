@@ -21,7 +21,7 @@ class ChatModeButton(QWidget):
     WIDTH = scale_px(80, min_abs=80)
     HEIGHT = scale_px(32, min_abs=1)
 
-    def __init__(self, launch_wuwa_button=None):
+    def __init__(self, layout_anchor=None, launch_wuwa_button=None):
         super().__init__()
         self.setWindowFlags(
             Qt.Tool
@@ -33,6 +33,9 @@ class ChatModeButton(QWidget):
         self.setCursor(Qt.PointingHandCursor)
         get_topmost_manager().register(self)
 
+        # 无「启动鸣潮」按钮时：锚在 layout_anchor（如穿透按钮）正上方一格；
+        # 若仍传入 launch_wuwa_button（旧布局）：贴在其右侧。
+        self._layout_anchor = layout_anchor or None
         self._launch_button = launch_wuwa_button
         self._visible = False
         self._listening = False
@@ -70,7 +73,12 @@ class ChatModeButton(QWidget):
 
     def _on_anchor_response(self, event: Event) -> None:
         ui_id = event.data.get('ui_id')
-        if ui_id in ('all', 'launch_wuwa_button'):
+        interested = {'all', 'launch_wuwa_button'}
+        if self._layout_anchor is not None:
+            aid = getattr(self._layout_anchor, '_ui_id', None)
+            if aid:
+                interested.add(aid)
+        if ui_id in interested:
             self._update_position()
 
     def _on_clickthrough_toggle(self, event: Event) -> None:
@@ -85,18 +93,17 @@ class ChatModeButton(QWidget):
     # ------------------------------------------------------------------
     # UI 布局
     # ------------------------------------------------------------------
-    def _target_geometry(self):
-        if self._launch_button and self._launch_button.isVisible():
-            return self._launch_button.geometry()
-        return None
-
     def _update_position(self) -> None:
-        geom = self._target_geometry()
-        if geom is None:
+        if self._launch_button and self._launch_button.isVisible():
+            target_rect = self._launch_button.geometry()
+            new_x = target_rect.x() + target_rect.width()
+            new_y = target_rect.y()
+        elif self._layout_anchor and self._layout_anchor.isVisible():
+            g = self._layout_anchor.geometry()
+            new_x = g.x()
+            new_y = g.y() - self.HEIGHT
+        else:
             return
-        target_rect = geom
-        new_x = target_rect.x() + target_rect.width()
-        new_y = target_rect.y()
         x, y, _ = clamp_rect_position(
             new_x,
             new_y,

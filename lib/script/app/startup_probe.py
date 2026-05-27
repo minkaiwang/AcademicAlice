@@ -6,7 +6,7 @@ import ctypes
 import os
 import platform
 import shutil
-import subprocess
+from lib.script.app.win_subprocess import run as _subprocess_run_hidden
 
 
 class _MEMORYSTATUSEX(ctypes.Structure):
@@ -66,7 +66,7 @@ def _decode_process_output(raw: bytes | None) -> str:
 
 
 def _run_capture_text(cmd: list[str], timeout: int) -> tuple[int, str, str]:
-    result = subprocess.run(cmd, capture_output=True, text=False, timeout=timeout)
+    result = _subprocess_run_hidden(cmd, capture_output=True, text=False, timeout=timeout)
     stdout = _decode_process_output(result.stdout or b'')
     stderr = _decode_process_output(result.stderr or b'')
     return result.returncode, stdout, stderr

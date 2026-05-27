@@ -3,8 +3,10 @@ from __future__ import annotations
 
 import os
 import re
-import subprocess
 from pathlib import Path
+
+from lib.script.app.win_subprocess import popen as _subprocess_popen_hidden
+from lib.script.app.win_subprocess import run as _subprocess_run_hidden
 
 from PyQt5.QtWidgets import QWidget, QGraphicsOpacityEffect
 from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QPoint
@@ -268,7 +270,7 @@ class LaunchWutheringWavesButton(QWidget):
         exe_path = self._find_wuthering_waves_exe()
         if exe_path:
             try:
-                subprocess.Popen([exe_path], cwd=os.path.dirname(exe_path) or None)
+                _subprocess_popen_hidden([exe_path], cwd=os.path.dirname(exe_path) or None)
                 self._event_center.publish(Event(EventType.INFORMATION, {
                     'text': '正在启动鸣潮...',
                     'min': 0,
@@ -521,7 +523,7 @@ foreach ($root in $paths) {{
 """
         for shell in ("powershell", "pwsh"):
             try:
-                r = subprocess.run(
+                r = _subprocess_run_hidden(
                     [shell, "-NoProfile", "-Command", script],
                     capture_output=True,
                     text=True,
@@ -568,7 +570,7 @@ exit 1
 """
         for shell in ("powershell", "pwsh"):
             try:
-                r = subprocess.run(
+                r = _subprocess_run_hidden(
                     [shell, "-NoProfile", "-Command", script],
                     capture_output=True,
                     text=True,
@@ -600,7 +602,7 @@ exit 1
         ]
         for cmd in launch_commands:
             try:
-                subprocess.Popen(cmd)
+                _subprocess_popen_hidden(cmd)
                 return True
             except Exception:
                 continue

@@ -9,8 +9,8 @@ from PyQt5.QtGui     import QPainter, QPixmap, QColor
 from config.config            import BEHAVIOR, PHYSICS, UI_THEME
 from config.font_config       import get_digit_font
 from config.scale             import scale_px
-from lib.core.topmost_manager  import get_topmost_manager
 from lib.core.event.center     import get_event_center, EventType, Event
+from lib.core.scene_stays_on_top import apply_scene_widget_stays_on_top, read_pet_stays_on_top_setting
 from lib.core.physics          import get_physics_world, PhysicsBody
 from lib.core.particle_utils   import spawn_particle_at_point
 from lib.core.screen_utils     import get_screen_geometry_for_point
@@ -87,13 +87,7 @@ class Clock(QWidget):
         # 速度轨迹队列：存储 (monotonic_time, QPoint) 对，仅保留最近 100ms 数据
         self._drag_trail: deque = deque()
 
-        # ── 窗口属性 ──────────────────────────────────────────────
-        self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.X11BypassWindowManagerHint
-        )
+        # ── 窗口属性（置顶与主桌宠一致）──────────────────────────────
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFixedSize(*size)
@@ -128,12 +122,12 @@ class Clock(QWidget):
         # 双击判定间隔（tick 数），读取全局配置，与 ClickHandler 保持一致
         self._double_click_ticks  = BEHAVIOR.get('double_click_ticks', 3)
 
+        self._event_center = get_event_center()
+        apply_scene_widget_stays_on_top(self, read_pet_stays_on_top_setting())
+        self._event_center.subscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
         self.move(position)
         self.show()
-        get_topmost_manager().register(self)
 
-        # 事件中心
-        self._event_center = get_event_center()
         self._event_center.subscribe(EventType.TICK,                   self._on_tick_click)
         self._event_center.subscribe(EventType.UI_CLICKTHROUGH_TOGGLE, self._on_clickthrough_toggle)
 
@@ -296,6 +290,9 @@ class Clock(QWidget):
         """穿透模式开启/关闭时同步自身鼠标透传状态。"""
         self.setAttribute(Qt.WA_TransparentForMouseEvents,
                           event.data.get('enabled', False))
+
+    def _on_scene_stays_on_top_changed(self, event: Event) -> None:
+        apply_scene_widget_stays_on_top(self, bool(event.data.get("stays_on_top", True)))
 
     # ==================================================================
     # 内部辅助
@@ -572,6 +569,7 @@ class Clock(QWidget):
         self._event_center.unsubscribe(EventType.TICK,                   self._on_tick_click)
         self._event_center.unsubscribe(EventType.TICK,                   self._tick_fade)
         self._event_center.unsubscribe(EventType.UI_CLICKTHROUGH_TOGGLE, self._on_clickthrough_toggle)
+        self._event_center.unsubscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
         self._cleanup_physics()
         self._alive = False
         super().closeEvent(event)

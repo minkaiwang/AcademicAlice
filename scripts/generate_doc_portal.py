@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Generate a sci-fi styled HTML portal that showcases doc + contribution files."""
+"""Generate HTML portal: merged readme block + contribution cards + doc/*.txt cards."""
 
 from __future__ import annotations
 
 import html
-import random
 from datetime import datetime
 from pathlib import Path
 
@@ -13,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC_DIR = ROOT / "doc"
 CONTRIB_DIR = DOC_DIR / "贡献名单和主播的狗盆"
 PORTAL_PATH = ROOT / "AA使用必读.html"
-IMAGE_PATH = CONTRIB_DIR / "如果想给作者买鸡腿饭的话" / "喵-感谢支持喵-欢迎工单喵.jpg"
 
 
 def _relative_href(path: Path) -> str:
@@ -46,11 +44,9 @@ def _render_cards(paths: list[Path]) -> str:
 def _generate_portal() -> str:
     doc_files = sorted(DOC_DIR.glob("*.txt"))
     dev_contrib_files = sorted(CONTRIB_DIR.glob("开发贡献*.txt"))
-    sponsor_files = sorted(CONTRIB_DIR.glob("感谢*.txt"))
 
     doc_cards = _render_cards(doc_files)
     contrib_cards = _render_cards(dev_contrib_files)
-    sponsor_cards = _render_cards(sponsor_files)
     particles_spans = "\n".join(
         f'            <span style="--i:{idx};"></span>' for idx in range(1, 25)
     )
@@ -71,8 +67,7 @@ def _generate_portal() -> str:
     )
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    image_rel = _relative_href(IMAGE_PATH)
-    hero_subtitle = "贡献 + 赞助 + 文档 · LTS1.0.5pre1"
+    hero_subtitle = "桌宠 × 科研工作台合并版 · 贡献记录 · 文档 · LTS1.0.5pre1"
     harmony_font = "resc/FRONTS/HarmonyOS_Sans_SC_Bold.ttf"
     lahairoi_font = "resc/FRONTS/WuWa%20Lahai-Roi%20Regular.ttf"
 
@@ -81,7 +76,7 @@ def _generate_portal() -> str:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>飞行雪绒资料舱 · LTS1.0.5pre1</title>
+    <title>学术爱丽丝资料舱 · LTS1.0.5pre1</title>
     <style>
         @font-face {{
             font-family: 'HarmonyOS Sans';
@@ -131,9 +126,36 @@ def _generate_portal() -> str:
         .hero p {{
             margin: 0.8rem auto 0;
             font-size: 1.1rem;
-            color: var(--cyan);
-            max-width: 720px;
+            color: rgba(255, 218, 230, 0.95);
+            max-width: 820px;
             line-height: 1.6;
+        }}
+        .usage-links a {{
+            color: var(--pink);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }}
+        .usage-links a:hover {{ color: var(--cyan); }}
+        .upstream-quote {{
+            margin: 1rem 0 0;
+            padding: 1rem 1rem 1rem 1.1rem;
+            border-left: 4px solid var(--pink);
+            background: rgba(5, 9, 18, 0.55);
+            color: rgba(248, 251, 255, 0.92);
+            font-size: 0.95rem;
+            line-height: 1.55;
+        }}
+        .upstream-cite {{
+            margin: 0.5rem 0 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.65);
+        }}
+        .merged-h3 {{
+            font-size: 1.25rem;
+            color: var(--cyan);
+            margin: 1.5rem 0 0.5rem;
+            border-left: 4px solid var(--pink);
+            padding-left: 0.65rem;
         }}
         section {{
             margin-bottom: 3rem;
@@ -232,15 +254,6 @@ def _generate_portal() -> str:
             margin-bottom: 1rem;
             line-height: 1.5;
         }}
-        .top-panels {{
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }}
-        .top-panel {{
-            flex: 1 1 320px;
-            min-width: 0;
-        }}
         .trail-container {{
             position: fixed;
             inset: 0;
@@ -297,31 +310,44 @@ def _generate_portal() -> str:
     <div class="trail-container" id="trail-root"></div>
     <main>
         <div class="hero">
-            <h1>飞行雪绒资料舱</h1>
-            <p>{hero_subtitle}<br>基于项目默认配色 + 粒子灵感打造，方便在浏览器里查阅 doc 与贡献记录。生成时间：{timestamp}</p>
+            <h1>学术爱丽丝资料舱</h1>
+            <p>{hero_subtitle}<br>本页由脚本根据仓库内文本自动生成，仅供查阅；权利义务与素材范围以各源文件及根目录 LICENSE 类文件为准。粉青配色与粒子动效为门户样式。生成时间：{timestamp}</p>
         </div>
-        <section id="top-panels">
-            <div class="top-panels">
-                <div class="top-panel">
-                    <h2>贡献列表</h2>
-                    <div class="cards">
-{contrib_cards}
-                    </div>
-                </div>
-                <div class="top-panel">
-                    <h2>赞助列表</h2>
-                    <div class="cards">
-{sponsor_cards}
-                    </div>
-                </div>
-            </div>
+        <section id="merged-readme">
+            <h2>合并版 · 使用必读</h2>
+            <p class="section-desc">
+                本应用在<strong>同一 Windows 进程</strong>中整合了两类组件：（1）<strong>桌宠与 AI 交互</strong>，代码与资源与「飞行雪绒 / FlyingSnowVelvet-Aemeath」系项目同源或可溯源，非代码素材的权属与限制见 <code>LICENSE-ASSETS</code>；
+                （2）<strong>科研工作台</strong>为内嵌静态页（<code>resc/workbench/</code>），在信息架构与交互上参考了
+                <a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener">AugustUp/phd_master_system</a>（MIT），本仓已做 Tailwind 本地化、主题与宿主衔接等改造，<strong>不等同于</strong>对该上游仓库的完整镜像。
+                论文、项目、任务等数据以浏览器内 <strong>科研工作台</strong> 为主（多存于本机页面存储）；应用侧学术库路径见 <code>PROGRESS.md</code>、<code>resc/workbench/README.txt</code>。
+            </p>
+            <h3 class="merged-h3">博士工作台 · 上游仓库</h3>
+            <p class="section-desc" style="margin-top:0.35rem;">
+                原仓库：<a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener noreferrer">AugustUp/phd_master_system</a>（MIT）。
+                下列文字为该仓库 readme 的<strong>摘录</strong>，著作权与立场归原维护者；若与 GitHub 最新 readme 不一致，以原仓库为准。
+            </p>
+            <blockquote class="upstream-quote">
+                感谢小红书用户分享的源文件，我在原有基础上完善了桌面端与移动端适配，并新增了坚果云网盘数据同步功能。 衷心鸣谢直接提供源码参考的用户： 「不是黑子是癫子」— 小红书号：61709040774 「橘子汽水」— 小红书号：romantic_Ksir 同时也向为上述源码提供者贡献内容的原始作者们致以谢意。本项目仅用于学习交流，非商业用途、未用于盈利。如涉及侵权，请通过 Issue 联系，我将立即处理删库。
+            </blockquote>
+            <p class="upstream-cite">摘录目的：向博士工作台来源链路的贡献者致谢；本分支内嵌页为改编实现，非上游应用完整镜像。</p>
+            <h3 class="merged-h3">本分支维护者（合并与文档署名）</h3>
+            <p class="section-desc" style="margin-top:0.35rem;">
+                哔哩哔哩「靓点迷人」（标识 <code>bili_2719061712</code>，空间 <a href="https://space.bilibili.com/2719061712" target="_blank" rel="noopener noreferrer">space.bilibili.com/2719061712</a>）；
+                小红书「皮鼓很痒」（小红书号 <code>533497202</code>）。
+                应用内托盘「关注作者」链接以 <code>app_brand.py</code> 中 <code>AUTHOR_BILIBILI_SPACE_URL</code> 为准，可与本段文档署名分别配置。
+            </p>
+            <ul class="section-desc usage-links" style="margin-top:0;padding-left:1.25rem;">
+                <li><strong>相对「分别使用桌宠与工作台」的主要差异（概要）</strong>：统一产品与人设「学术爱丽丝」、<code>resc/persona.txt</code> 系统提示、专用聊天窗口（粉系 UI，与桌旁气泡共用聊天管线）、命令面板 / 托盘与学术模块的联动、工作台多主题与离线 bundle 说明见 <code>resc/workbench/README.txt</code>。</li>
+                <li><strong>工程文档</strong>：<a href="PRODUCT.md">PRODUCT.md</a>（品牌与中文口径）、<a href="PROGRESS.md">PROGRESS.md</a>（里程碑与技术约定）、<a href="README.md">README.md</a>（仓库总览）。</li>
+                <li><strong>操作入口摘要</strong>：见下方 DOC 区「合并项目与使用入口」卡片原文。</li>
+            </ul>
         </section>
-        <section id="dog-bowl">
-            <h2>狗盆墙</h2>
-            <figure>
-                <img src="{image_rel}" alt="感谢支持喵">
-                <figcaption>如果想给作者买鸡腿饭的话 · 原图</figcaption>
-            </figure>
+        <section id="contrib">
+            <h2>贡献列表</h2>
+            <p class="section-desc">以下内容来自 <code>doc/贡献名单和主播的狗盆/</code> 下匹配 <code>开发贡献*.txt</code> 的文件原文，仅作署名与致谢记录；与当前维护者商业行为无关。</p>
+            <div class="cards">
+{contrib_cards}
+            </div>
         </section>
         <section id="documents">
             <h2>DOC</h2>
@@ -330,7 +356,7 @@ def _generate_portal() -> str:
             </div>
         </section>
     </main>
-    <footer>由飞行雪绒 LTS1.0.5pre1 代码生成 · 粉粉青青也是科技感 (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧</footer>
+    <footer>由 <code>scripts/generate_doc_portal.py</code> 根据仓库内文本生成 · LTS1.0.5pre1 · 不含赞助或打赏展示区块</footer>
     <script>
     (() => {{
         const letters = "FLYINGSNOWVELVET";
@@ -362,8 +388,6 @@ def _generate_portal() -> str:
         timestamp=timestamp,
         doc_cards=doc_cards,
         contrib_cards=contrib_cards,
-        image_rel=image_rel,
-        sponsor_cards=sponsor_cards,
         harmony_font=harmony_font,
         lahairoi_font=lahairoi_font,
     )

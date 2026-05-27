@@ -28,7 +28,7 @@ _ENV_API_KEY, _ENV_API_KEY_SOURCE = _load_env_api_key()
 # API Key 配置（优先使用）
 # 如果设置了有效的 API Key，将使用 OpenAI 兼容 API 而非本地 Ollama。
 # 默认保持为空，请优先通过环境变量或 AI 设置面板注入，避免把密钥提交到仓库。
-API_KEY = 'sss'
+API_KEY = ''
 
 # 回复模式强制开关（留空=默认检索顺序）
 # 0: 强制配置文件 API_KEY
@@ -55,14 +55,14 @@ API_MODEL = 'deepseek-v3'
 # - 启动后会自动生成登录二维码图片并等待扫码
 # - chat_id / 图片上传等能力仍沿用 OpenAI 兼容接口
 YUANBAO_FREE_API = {
-    'enabled': True,
+    'enabled': False,
     'login_url': 'https://yuanbao.tencent.com/chat/naQivTmsDa',
     'hy_source': 'web',
     'hy_user': '',
     'x_uskey': '',
     'agent_id': 'naQivTmsDa',
     'chat_id': '',
-    'should_remove_conversation': True,
+    'should_remove_conversation': False,
     'upload_images': True,
 }
 
@@ -83,7 +83,7 @@ OLLAMA = {
     'api_temperature':     0.8,      # 外部 API 采样温度（0~2）
     'gsv_temperature':     1.35,      # GSV 文本转语音采样温度（0~2）
     'gsv_speed_factor':    1.0,      # GSV 文本转语音语速（0.5~2.0）
-    'ai_voice_max_chars':  65,       # GSV 语音合成最大文本长度（20~80）
+    'ai_voice_max_chars':  40,       # GSV 语音合成最大文本长度（20~80）
     'memory_context_limit': 12,      # 发送给 AI 时附带的 recent memory 条数（0~48，0 = 不附带）
     'api_enable_thinking': False,   # 外部 API 思考模式（Qwen3.5-plus 默认 True；关闭可提升可见流式与命令稳定性）
     'api_thinking_budget': 0,       # >0 时限制思考 token；0 表示不指定

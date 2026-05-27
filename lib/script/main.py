@@ -184,27 +184,47 @@ class ApplicationState:
 
     def start(self):
         """启动状态 - 初始化应用程序"""
-        # 切换到项目根目录
+        # 可执行文件所在目录：用于日志、快捷方式等用户可见落盘路径
         if getattr(sys, 'frozen', False):
-            script_dir = os.path.dirname(sys.executable)
+            script_dir = os.path.dirname(os.path.abspath(sys.executable))
         else:
             # 获取项目根目录（向上两级，从 lib/script 到根目录）
             script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        os.chdir(script_dir)
+        # PyInstaller onefile/onedir：静态资源在解压目录 _MEIPASS，相对路径 resc/… 依赖于此
+        mei = getattr(sys, "_MEIPASS", None)
+        if mei and os.path.isdir(mei):
+            os.chdir(mei)
+        else:
+            os.chdir(script_dir)
         self._script_dir = script_dir
+
+        try:
+            from lib.script.app.win_console import detach_process_console_if_unneeded
+
+            detach_process_console_if_unneeded()
+        except Exception:
+            pass
 
         # ── 初始化日志系统（最早执行，确保捕获全部输出）──────────────
         # initialize 内部会自动清理旧日志，只保留最新 5 个
         initialize_app_logger(script_dir)
-        _new_log_startup_hardware_info(logger, DRAW)
-
-        # ── 检查并创建桌面快捷方式（日志初始化后执行，便于记录错误）────
-        _new_ensure_desktop_shortcut(script_dir)
 
         logger.info('工作目录: %s', script_dir)
 
         # 创建Qt应用（需要在发布事件前创建，以便 QTimer 工作）
         self._app = _new_create_qt_application(logger, sys.argv)
+
+        def _deferred_startup_disk_tasks() -> None:
+            try:
+                _new_log_startup_hardware_info(logger, DRAW)
+            except Exception as e:
+                logger.warning("延后硬件信息采集失败: %s", e)
+            try:
+                _new_ensure_desktop_shortcut(script_dir)
+            except Exception as e:
+                logger.warning("延后桌面快捷方式同步失败: %s", e)
+
+        QTimer.singleShot(600, _deferred_startup_disk_tasks)
 
         # GSVmove 需要尽早拉起，以便与后续预启动延时并行完成服务启动/预热。
         if self._gsvmove is not None:

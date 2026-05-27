@@ -7,7 +7,6 @@ from config.ollama_config import OLLAMA
 from lib.core.event.center import Event, EventType
 from lib.core.logger import get_logger
 from lib.script.chat import bot_reply
-from .handler_auto_companion import AUTO_COMPANION_PROMPT
 
 logger = get_logger(__name__)
 
@@ -274,7 +273,7 @@ class ChatHandlerStreamPresenterMixin:
         raw_text = text
         from_ai = bool(raw_text)
         if not raw_text:
-            raw_text = bot_reply.get_reply(AUTO_COMPANION_PROMPT)
+            raw_text = bot_reply.get_reply("你好")
         display_text = _strip_tool_commands_for_display(raw_text)
         
         # 使用与流式回复结束相同的 min_ticks 计算逻辑

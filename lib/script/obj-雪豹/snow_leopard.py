@@ -9,7 +9,7 @@ from config.config                import ANIMATION, SNOW_LEOPARD, BEHAVIOR, PHYS
 from lib.core.qt_gif_loader       import scale_frame
 from lib.core.event.center        import get_event_center, EventType, Event
 from lib.core.physics             import get_physics_world, PhysicsBody
-from lib.core.topmost_manager    import get_topmost_manager
+from lib.core.scene_stays_on_top import apply_scene_widget_stays_on_top, read_pet_stays_on_top_setting
 from lib.core.voice.snow          import SnowSound
 
 
@@ -77,19 +77,14 @@ class SnowLeopard(QWidget):
         # 落地音效（随机选取 resc/SOUND/snow/ 内的音频）
         self._snow_sound = SnowSound()
 
-        # ── 窗口属性 ──────────────────────────────────────────────
-        self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.X11BypassWindowManagerHint
-        )
+        # ── 窗口属性（置顶与主桌宠一致）──────────────────────────────
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_NoSystemBackground)
         # 不设置 WA_TransparentForMouseEvents 初始值，由穿透模式事件动态控制
         self.setFixedSize(*size)
         self.setCursor(Qt.ArrowCursor)
-        get_topmost_manager().register(self)
+        apply_scene_widget_stays_on_top(self, read_pet_stays_on_top_setting())
+        self._event_center.subscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
 
         # ── 物理体 ────────────────────────────────────────────────
         w, h = size
@@ -156,6 +151,9 @@ class SnowLeopard(QWidget):
         """穿透模式开启/关闭时同步自身鼠标透传状态。"""
         self.setAttribute(Qt.WA_TransparentForMouseEvents,
                           event.data.get('enabled', False))
+
+    def _on_scene_stays_on_top_changed(self, event: Event) -> None:
+        apply_scene_widget_stays_on_top(self, bool(event.data.get("stays_on_top", True)))
 
     def start_fadeout(self):
         """
@@ -469,6 +467,8 @@ class SnowLeopard(QWidget):
         self._event_center.unsubscribe(EventType.TICK, self._on_tick_click)
         self._event_center.unsubscribe(EventType.TICK, self._tick_fade)
         self._event_center.unsubscribe(EventType.TIMER, self._on_timer_event)
+        self._event_center.unsubscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
+        self._event_center.unsubscribe(EventType.UI_CLICKTHROUGH_TOGGLE, self._on_clickthrough_toggle)
         self._cancel_flip_task()
         self._cleanup_physics()
         super().closeEvent(event)

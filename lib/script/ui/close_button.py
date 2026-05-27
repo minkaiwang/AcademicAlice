@@ -118,7 +118,7 @@ class CloseButton(QWidget):
         return resolve_anchor_point(self, anchor_id)
 
     def paintEvent(self, event):
-        """绘制2px黑色边框、2px青色边框、粉色背景和居中的"关闭桌宠"文字"""
+        """绘制2px黑色边框、2px青色边框、粉色背景和居中的「关闭程序」文字"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing, False)
         layer = scale_px(2, min_abs=1)
@@ -137,10 +137,10 @@ class CloseButton(QWidget):
         )
         painter.fillRect(content_rect, COLORS['pink'])
 
-        # 绘制居中的"关闭桌宠"粗体文字
+        # 绘制居中的「关闭程序」粗体文字
         painter.setPen(COLORS['black'])
         painter.setFont(self._font)
-        painter.drawText(content_rect, Qt.AlignCenter, '关闭桌宠')
+        painter.drawText(content_rect, Qt.AlignCenter, '关闭程序')
 
     def _on_frame(self, event):
         """帧事件处理 - 刷新位置"""

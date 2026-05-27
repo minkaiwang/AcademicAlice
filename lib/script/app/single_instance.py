@@ -5,6 +5,7 @@ from __future__ import annotations
 import ctypes
 import os
 
+from app_brand import APP_DISPLAY_NAME
 from lib.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -16,13 +17,13 @@ _single_instance_mutex_handle = None
 
 def notify_already_running() -> None:
     """提示用户程序已在运行，避免重复启动。"""
-    message = '飞行雪绒已在运行中，本次重复启动已被阻止。'
+    message = f"{APP_DISPLAY_NAME} 已在运行中，本次重复启动已被阻止。"
     try:
         print(message)
     except Exception:
         pass
     try:
-        ctypes.windll.user32.MessageBoxW(0, message, '飞行雪绒', 0x40)
+        ctypes.windll.user32.MessageBoxW(0, message, APP_DISPLAY_NAME, 0x40)
     except Exception:
         pass
 
@@ -43,7 +44,10 @@ def acquire_single_instance_lock() -> bool:
         ctypes.set_last_error(0)
         handle = kernel32.CreateMutexW(None, False, _SINGLE_INSTANCE_MUTEX_NAME)
         if not handle:
-            logger.warning('创建单实例锁失败，继续启动（fail-open）')
+            logger.warning(
+                '创建单实例锁失败（无句柄），继续启动（fail-open）；'
+                '若出现多个桌宠进程，请检查杀毒/权限是否拦截 CreateMutex'
+            )
             return True
 
         if ctypes.get_last_error() == _ERROR_ALREADY_EXISTS:

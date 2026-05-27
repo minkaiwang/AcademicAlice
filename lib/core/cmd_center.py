@@ -51,8 +51,13 @@ class CmdCenter:
         """在后台线程中执行命令（超时配置化，不阻塞 Qt 主线程）"""
         timeout_val = TIMEOUTS['cmd_exec']
         try:
+            cflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, timeout=timeout_val
+                cmd,
+                shell=True,
+                capture_output=True,
+                timeout=timeout_val,
+                creationflags=cflags,
             )
             raw = result.stdout or result.stderr or b''
             output = raw.decode('gbk', errors='replace').strip() or '命令执行完成'

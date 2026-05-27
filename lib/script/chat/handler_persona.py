@@ -14,6 +14,13 @@ DEFAULT_PERSONA_FILE = BUBBLE_CONFIG.get('default_persona_file', 'resc/persona.t
 RECENT_CONTEXT_MESSAGES = 12
 DEFAULT_MEMORY_CONTEXT_LIMIT = 12
 
+# 与 resc/persona.txt 一致：强制模型以中文回复（避免 API 默认输出英文）
+_LANGUAGE_POLICY_BLOCK = (
+    "[回复语言]\n"
+    "除非用户明确要求使用其它语言，否则对话正文与 ///主题/// 中的主题名一律使用简体中文；"
+    "仅在必要时保留外文专有名词、链接、代码、论文标题等原文。"
+)
+
 
 class ChatHandlerPersonaMixin:
     @staticmethod
@@ -100,6 +107,7 @@ class ChatHandlerPersonaMixin:
         sections: list[str] = []
         if base:
             sections.append(base)
+        sections.append(_LANGUAGE_POLICY_BLOCK)
         sections.append(f'[系统时间]\n{time_suffix}')
         if memory_block:
             sections.append(memory_block)

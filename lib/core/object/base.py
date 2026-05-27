@@ -5,8 +5,11 @@ from PyQt5.QtGui import QPixmap, QImage, QPainter
 
 from config.config import ANIMATION, OBJECTS
 from lib.core.qt_gif_loader import scale_frame
-from lib.core.topmost_manager import get_topmost_manager
-from lib.core.event.center import get_event_center, EventType
+from lib.core.event.center import get_event_center, EventType, Event
+from lib.core.scene_stays_on_top import (
+    apply_scene_widget_stays_on_top,
+    read_pet_stays_on_top_setting,
+)
 
 
 def _clamp_opacity(value) -> float:
@@ -38,17 +41,23 @@ class GameObject(QWidget):
         from lib.core.render.animation_renderer import AnimationRenderer
         self._renderer = AnimationRenderer(size)
 
-        # 设置窗口属性
-        self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.X11BypassWindowManagerHint
-        )
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFixedSize(*size)
-        get_topmost_manager().register(self)
+        self._ec = get_event_center()
+        apply_scene_widget_stays_on_top(self, read_pet_stays_on_top_setting())
+        self._ec.subscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
+
+    def _on_scene_stays_on_top_changed(self, event: Event) -> None:
+        on = bool(event.data.get("stays_on_top", True))
+        apply_scene_widget_stays_on_top(self, on)
+
+    def closeEvent(self, event) -> None:
+        try:
+            self._ec.unsubscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
+        except Exception:
+            pass
+        super().closeEvent(event)
 
     # ==================================================================
     # 渲染

@@ -294,6 +294,10 @@ class StateMachine:
         3) random point near speaker
         4) fully random screen point
         """
+        if not BEHAVIOR.get('auto_wander_enabled', True):
+            log("Wander skipped: auto_wander_enabled is False")
+            return
+
         log(f"Wander triggered, current_state={self._current_state}, is_moving={self._entity.is_moving()}")
 
         # Sofa protection has higher priority than all wander target selection.

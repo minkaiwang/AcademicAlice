@@ -17,6 +17,7 @@ from lib.core.logger import get_logger
 from lib.core.event.center import get_event_center, EventType, Event
 from lib.script.ui.tray_menu import TrayContextMenu
 from config.config import CLOUD_MUSIC
+from app_brand import APP_DISPLAY_NAME, AUTHOR_BILIBILI_SPACE_URL
 from config.tooltip_config import TOOLTIPS
 
 _logger = get_logger(__name__)
@@ -142,7 +143,7 @@ class TrayIcon(QObject):
 
         self._icon = icon
         self._tray_icon.setIcon(self._icon)
-        self._tray_icon.setToolTip('飞行雪绒')
+        self._tray_icon.setToolTip(APP_DISPLAY_NAME)
 
         try:
             self._tray_icon.messageClicked.connect(self._on_message_clicked)
@@ -240,19 +241,17 @@ class TrayIcon(QObject):
         self._menu.addAction(self._autostart_action)
         self._publish_autostart_status(autostart_enabled, source='tray_init')
 
-        # 清理桌面动作
-        cleanup_action = QAction('清理桌面', self._menu)
-        cleanup_action.setToolTip(TOOLTIPS['tray_cleanup_desktop'])
-        cleanup_action.setStatusTip(TOOLTIPS['tray_cleanup_desktop'])
-        cleanup_action.triggered.connect(self._on_cleanup_desktop)
-        self._menu.addAction(cleanup_action)
-
-        # 清理缓存动作
-        cleanup_cache_action = QAction('清理缓存', self._menu)
-        cleanup_cache_action.setToolTip(TOOLTIPS['tray_cleanup_cache'])
-        cleanup_cache_action.setStatusTip(TOOLTIPS['tray_cleanup_cache'])
-        cleanup_cache_action.triggered.connect(self._on_cleanup_cache)
-        self._menu.addAction(cleanup_cache_action)
+        # 清理桌面 / 清理缓存：暂时隐藏（保留回调实现，便于日后恢复）
+        # cleanup_action = QAction('清理桌面', self._menu)
+        # cleanup_action.setToolTip(TOOLTIPS['tray_cleanup_desktop'])
+        # cleanup_action.setStatusTip(TOOLTIPS['tray_cleanup_desktop'])
+        # cleanup_action.triggered.connect(self._on_cleanup_desktop)
+        # self._menu.addAction(cleanup_action)
+        # cleanup_cache_action = QAction('清理缓存', self._menu)
+        # cleanup_cache_action.setToolTip(TOOLTIPS['tray_cleanup_cache'])
+        # cleanup_cache_action.setStatusTip(TOOLTIPS['tray_cleanup_cache'])
+        # cleanup_cache_action.triggered.connect(self._on_cleanup_cache)
+        # self._menu.addAction(cleanup_cache_action)
 
         # 清理历史动作
         cleanup_history_action = QAction('清理历史', self._menu)
@@ -267,6 +266,18 @@ class TrayIcon(QObject):
         ai_settings_action.setStatusTip(TOOLTIPS['tray_ai_settings'])
         ai_settings_action.triggered.connect(self._on_ai_settings)
         self._menu.addAction(ai_settings_action)
+
+        cloud_music_action = QAction('云音乐（音响搜索）', self._menu)
+        cloud_music_action.setToolTip(TOOLTIPS['tray_cloud_music'])
+        cloud_music_action.setStatusTip(TOOLTIPS['tray_cloud_music'])
+        cloud_music_action.triggered.connect(self._on_open_cloud_music)
+        self._menu.addAction(cloud_music_action)
+
+        workbench_action = QAction('爱丽丝科研工作台', self._menu)
+        workbench_action.setToolTip(TOOLTIPS['tray_workbench'])
+        workbench_action.setStatusTip(TOOLTIPS['tray_workbench'])
+        workbench_action.triggered.connect(self._on_open_workbench)
+        self._menu.addAction(workbench_action)
 
         # 关注作者动作
         follow_author_action = QAction('关注作者', self._menu)
@@ -452,10 +463,79 @@ class TrayIcon(QObject):
                 'max': 120,
             }))
 
+    def _on_open_cloud_music(self):
+        """无场上音响时自动生成一个，并打开音响旁的云音乐搜索框。"""
+        try:
+            from lib.core.plugin_registry import get_manager
+            from lib.script.ui.speaker_search_dialog import get_speaker_search_dialog
+
+            mgr = get_manager('speaker')
+            if mgr is None:
+                self._event_center.publish(Event(EventType.INFORMATION, {
+                    'text': '音乐模块尚未就绪，请稍后再试。',
+                    'min': 6,
+                    'max': 80,
+                }))
+                return
+
+            if not mgr.get_alive_speakers():
+                self._event_center.publish(Event(EventType.MANAGER_SPAWN_REQUEST, {
+                    'manager_id': 'speaker',
+                    'count': 1,
+                }))
+                QApplication.instance().processEvents()
+
+            alive = mgr.get_alive_speakers()
+            if not alive:
+                self._event_center.publish(Event(EventType.INFORMATION, {
+                    'text': '未能生成音响（请检查 resc/GIF/music.png 与音响配置）。也可用命令 #音响 1 召唤。',
+                    'min': 10,
+                    'max': 160,
+                }))
+                return
+
+            dlg = get_speaker_search_dialog()
+            if dlg is None:
+                return
+            dlg.toggle(alive[-1])
+        except Exception as e:
+            _logger.error('打开云音乐搜索失败: %s', e)
+            self._event_center.publish(Event(EventType.INFORMATION, {
+                'text': f'打开云音乐失败: {e}',
+                'min': 10,
+                'max': 120,
+            }))
+
+    def _on_open_workbench(self):
+        """在浏览器打开爱丽丝科研工作台（本机 resc/workbench 静态页）。"""
+        try:
+            from lib.script.workbench_host import open_workbench_in_browser
+
+            local = open_workbench_in_browser()
+            if local:
+                self._event_center.publish(Event(EventType.INFORMATION, {
+                    'text': '已在浏览器打开爱丽丝科研工作台',
+                    'min': 0,
+                    'max': 60,
+                }))
+            else:
+                self._event_center.publish(Event(EventType.INFORMATION, {
+                    'text': '未找到本地工作台页面，已打开 GitHub 说明（可将 HTML 放入 resc/workbench）',
+                    'min': 12,
+                    'max': 200,
+                }))
+        except Exception as e:
+            _logger.error('打开工作台失败: %s', e)
+            self._event_center.publish(Event(EventType.INFORMATION, {
+                'text': f'打开工作台失败: {e}',
+                'min': 10,
+                'max': 120,
+            }))
+
     def _on_follow_author(self):
         """处理关注作者动作"""
         try:
-            webbrowser.open('https://space.bilibili.com/486401719')
+            webbrowser.open(AUTHOR_BILIBILI_SPACE_URL)
             self._event_center.publish(Event(EventType.INFORMATION, {
                 'text': '已打开作者主页',
                 'min': 0,

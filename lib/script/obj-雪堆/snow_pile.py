@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore    import Qt, QPoint
 from PyQt5.QtGui     import QPainter, QPixmap
 
-from lib.core.topmost_manager import get_topmost_manager
 from lib.core.event.center    import get_event_center, EventType, Event
+from lib.core.scene_stays_on_top import apply_scene_widget_stays_on_top, read_pet_stays_on_top_setting
 from lib.core.screen_utils    import get_screen_geometry_for_point
 from lib.core.voice.snow      import SnowSound
 from config.config            import PHYSICS, BEHAVIOR
@@ -70,21 +70,16 @@ class SnowPile(QWidget):
         # 事件中心
         self._event_center = get_event_center()
 
-        # ── 窗口属性 ──────────────────────────────────────────────
-        self.setWindowFlags(
-            Qt.FramelessWindowHint
-            | Qt.WindowStaysOnTopHint
-            | Qt.Tool
-            | Qt.X11BypassWindowManagerHint
-        )
+        # ── 窗口属性（置顶与主桌宠一致）──────────────────────────────
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_NoSystemBackground)
         self.setFixedSize(*size)
         self.setCursor(Qt.SizeHorCursor)
+        apply_scene_widget_stays_on_top(self, read_pet_stays_on_top_setting())
+        self._event_center.subscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
 
         self.move(position)
         self.show()
-        get_topmost_manager().register(self)
 
         # 订阅穿透模式切换
         self._event_center.subscribe(EventType.UI_CLICKTHROUGH_TOGGLE,
@@ -259,6 +254,9 @@ class SnowPile(QWidget):
         self.setAttribute(Qt.WA_TransparentForMouseEvents,
                           event.data.get('enabled', False))
 
+    def _on_scene_stays_on_top_changed(self, event: Event) -> None:
+        apply_scene_widget_stays_on_top(self, bool(event.data.get("stays_on_top", True)))
+
     # ==================================================================
     # Qt 事件
     # ==================================================================
@@ -331,5 +329,7 @@ class SnowPile(QWidget):
         self._event_center.unsubscribe(EventType.TICK, self._on_tick_click)
         self._event_center.unsubscribe(EventType.TIMER, self._on_timer_event)
         self._event_center.unsubscribe(EventType.TICK, self._tick_fade)
+        self._event_center.unsubscribe(EventType.UI_CLICKTHROUGH_TOGGLE, self._on_clickthrough_toggle)
+        self._event_center.unsubscribe(EventType.UI_SCENE_STAYS_ON_TOP_CHANGED, self._on_scene_stays_on_top_changed)
         self._alive = False
         super().closeEvent(event)

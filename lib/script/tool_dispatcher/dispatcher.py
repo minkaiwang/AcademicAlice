@@ -487,8 +487,7 @@ class ToolDispatcher:
         使用音乐抽象层搜索音乐，返回 (track_ref, display) 或 (None, None)。
 
         API 返回结果本身按热度排序，客户端做稳定优先级调整：
-        1. 作者名包含“鸣潮”优先
-        2. 歌名完全匹配优先
+        1. 歌名完全匹配优先
         其余保持原有热度顺序。
         """
         try:
@@ -502,22 +501,8 @@ class ToolDispatcher:
                 """优先级越小越靠前（稳定排序，热度顺序作为兜底）。"""
                 name = str(getattr(track, 'title', '') or '').lower()
                 is_exact_name = name == kw_lower
-
-                artist_blob = str(getattr(track, 'artist', '') or '')
-                has_mingchao_author = '鸣潮' in artist_blob
-
-                # 0: 鸣潮 + 完全匹配
-                # 1: 鸣潮作者
-                # 2: 完全匹配
-                # 3: 其他
-                if has_mingchao_author and is_exact_name:
-                    rank = 0
-                elif has_mingchao_author:
-                    rank = 1
-                elif is_exact_name:
-                    rank = 2
-                else:
-                    rank = 3
+                # 0: 完全匹配；1: 其他
+                rank = 0 if is_exact_name else 1
                 # 次级键让同级下歌名更短的略优先，其余保持稳定排序。
                 return rank, len(str(getattr(track, 'title', '') or ''))
 

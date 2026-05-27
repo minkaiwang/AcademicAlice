@@ -44,6 +44,17 @@ def _set_scaled_font_defaults() -> None:
 def init_font_config() -> None:
     """公开接口：初始化字体字号配置。"""
     _set_scaled_font_defaults()
+    try:
+        from config.config import UI
+
+        pct = int(UI.get("ui_font_scale_percent", 100))
+    except Exception:
+        pct = 100
+    pct = max(70, min(200, pct))
+    if pct != 100:
+        factor = pct / 100.0
+        for key in list(FONT.keys()):
+            FONT[key] = max(9, int(round(float(FONT[key]) * factor)))
 
 
 def _build_font(family: str, pixel_size: int):

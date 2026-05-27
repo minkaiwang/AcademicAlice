@@ -1,12 +1,12 @@
 @echo off
 chcp 65001 >nul 2>&1
 setlocal EnableDelayedExpansion
-cd /d "%~sdp0"
+cd /d "%~dp0"
 
 set "PYTHONPATH=.;config;lib"
 
 if not exist "py.ini" (
-    echo py.ini not found. Please run install_deps.py first.
+    echo py.ini not found. Please run install\install_deps.py or 安装依赖.bat first.
     pause
     exit /b 1
 )

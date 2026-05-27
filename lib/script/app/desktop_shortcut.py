@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import os
-import subprocess
+from lib.script.app.win_subprocess import run as _subprocess_run_hidden
 import tempfile
 
 from config.config import STARTUP
+from app_brand import APP_DISPLAY_NAME, APP_TAGLINE
 from lib.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,7 +38,7 @@ def _decode_process_output(raw: bytes | None) -> str:
 
 
 def _run_capture_text(cmd: list[str], timeout: int) -> tuple[int, str, str]:
-    result = subprocess.run(cmd, capture_output=True, text=False, timeout=timeout)
+    result = _subprocess_run_hidden(cmd, capture_output=True, text=False, timeout=timeout)
     stdout = _decode_process_output(result.stdout or b'')
     stderr = _decode_process_output(result.stderr or b'')
     return result.returncode, stdout, stderr
@@ -331,7 +332,7 @@ def ensure_desktop_shortcut(script_dir: str) -> None:
         errors: list[str] = []
 
         def _try_create_shortcut(desktop_path: str) -> bool:
-            shortcut_path = os.path.join(desktop_path, '飞行雪绒.lnk')
+            shortcut_path = os.path.join(desktop_path, f'{APP_DISPLAY_NAME}.lnk')
             expected_target = _normalize_file_path_for_compare(bat_path)
 
             if os.path.exists(shortcut_path):
@@ -370,7 +371,7 @@ def ensure_desktop_shortcut(script_dir: str) -> None:
                 shortcut_path=shortcut_path,
                 target_path=bat_path,
                 working_dir=script_dir,
-                description='飞行雪绒桌面宠物',
+                description=f'{APP_DISPLAY_NAME} · {APP_TAGLINE}',
                 icon_path=icon_for_shortcut,
             )
             if ok:
@@ -383,7 +384,7 @@ def ensure_desktop_shortcut(script_dir: str) -> None:
                 shortcut_path=shortcut_path,
                 target_path=bat_path,
                 working_dir=script_dir,
-                description='飞行雪绒桌面宠物',
+                description=f'{APP_DISPLAY_NAME} · {APP_TAGLINE}',
                 icon_path=icon_for_shortcut,
             )
             if ok:

@@ -37,6 +37,10 @@ UI = {
     'ui_widget_opacity':       1.0,             # UI控件透明度（0.0-1.0）
     'ui_fade_duration':        200,  # UI淡入/淡出持续时间（毫秒）
     'auto_hide_mouse_distance': 300,  # 右键相关UI自动关闭距离阈值（xp）
+    # 全局 UI 字号缩放（100=与 DPI 缩放一致；调高可放大命令框、气泡、控制面板等）
+    'ui_font_scale_percent':   100,
+    # 主桌宠窗口是否始终置顶（False 时仍随普通窗口层级，命令框等子 UI 仍可置顶）
+    'pet_stays_on_top':        True,
 }
 BUBBLE_CONFIG = {
     'default_min_ticks':  2,      # 默认最小显示 tick 数

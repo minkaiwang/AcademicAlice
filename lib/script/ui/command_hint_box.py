@@ -6,7 +6,7 @@
   - 文字左对齐，自适应宽度，最大 360px
 
 显示逻辑：
-  - 无输入 / 非 # 输入 → 默认提示（3 条静态说明行）
+  - 无输入 / 非 # 输入 → 默认提示（多条静态说明行）
   - # 输入时 → 过滤 # 命令列表，支持 Tab 补全 / ↑↓ 导航 / ←→ 翻页
   - 每页最多 5 条，超出时底部显示页码指示器
 """
@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from PyQt5.QtWidgets import QWidget, QApplication, QGraphicsOpacityEffect
-from PyQt5.QtCore import Qt, QPoint, QRect, QPropertyAnimation, QEasingCurve
+from PyQt5.QtCore import Qt, QPoint, QRect, QPropertyAnimation, QEasingCurve, QTimer
 from PyQt5.QtGui import QFontMetrics, QPainter
 
 from config.config import COLORS, UI, UI_THEME
@@ -52,10 +52,13 @@ _SEP_H       = _SEP_CYAN_H                 # 分隔线总占高 = 5px（黑线�
 # ── 无输入时显示的默认提示行 ──────────────────────────────────────────
 _DEFAULT_HINTS: list[str] = [
     '/-执行cmd命令',
-    '#-执行玩法命令',
-    '聊天-与爱弥斯聊天',
+    '#-快捷命令',
+    '聊天-在命令行输入，气泡旁回复',
+    '聊天记录-查看与爱丽丝的对话',
+    '工作台-浏览器打开爱丽丝科研工作台',
+    '#工作台-快捷打开（与 #学术 同效）',
 ]
-_DEFAULT_SIDE_LABEL = 'Aemeath'
+_DEFAULT_SIDE_LABEL = 'Alice'
 _DEFAULT_SIDE_LABEL_HIGHLIGHT = 'RUNcmd'
 _SIDE_LABEL_GAP_X = scale_px(8, min_abs=1)
 _SIDE_LABEL_PAD_R = scale_px(6, min_abs=1)
@@ -66,7 +69,7 @@ class CommandHintBox(QWidget):
     """
     命令提示框（右键 UI 组件）。
 
-    - 无输入 / 非 # 输入时：显示三条通用操作提示（静态）
+    - 无输入 / 非 # 输入时：显示默认操作提示行（静态）
     - # 输入时：实时过滤并展示匹配的 # 命令列表
       · Tab     → 自动补全当前选中命令
       · ↑ ↓    → 切换选中行
@@ -432,7 +435,19 @@ class CommandHintBox(QWidget):
                 elif row == 1:
                     self._event_center.publish(Event(EventType.UI_HINT_PICK, {'text': '#'}))
                 elif row == 2:
-                    self._event_center.publish(Event(EventType.UI_HINT_PICK, {'text': '你好啊,爱弥斯'}))
+                    self._event_center.publish(Event(EventType.UI_HINT_PICK, {'focus_only': True}))
+                elif row == 3:
+                    self._event_center.publish(Event(EventType.UI_OPEN_ALICE_CHAT_HISTORY, {}))
+                elif row == 4:
+
+                    def _open_workbench() -> None:
+                        from lib.script.workbench_host import open_workbench_in_browser
+
+                        open_workbench_in_browser()
+
+                    QTimer.singleShot(0, _open_workbench)
+                elif row == 5:
+                    self._event_center.publish(Event(EventType.UI_HINT_PICK, {'text': '#工作台'}))
             super().mousePressEvent(event)
             return
 

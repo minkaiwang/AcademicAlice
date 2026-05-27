@@ -6,7 +6,6 @@ from lib.script.ui.clickthrough_button import ClickThroughButton
 from lib.script.ui.close_button import CloseButton
 from lib.script.ui.command_dialog import CommandDialog
 from lib.script.ui.command_hint_box import CommandHintBox
-from lib.script.ui.launch_wuwa_button import LaunchWutheringWavesButton
 from lib.script.ui.mic_stt_indicator import MicSttIndicator
 from lib.script.ui.scale_button import ScaleUpButton, ScaleDownButton
 
@@ -16,7 +15,6 @@ _UI_ATTRS = (
     '_clickthrough_btn',
     '_scale_up_btn',
     '_scale_down_btn',
-    '_launch_wuwa_btn',
     '_chat_mode_btn',
     '_bubble',
     '_hint_box',
@@ -31,8 +29,7 @@ def create_pet_window_ui(owner, on_close):
     clickthrough_btn = ClickThroughButton()
     scale_up_btn = ScaleUpButton(clickthrough_button=clickthrough_btn)
     scale_down_btn = ScaleDownButton(scale_up_button=scale_up_btn)
-    launch_wuwa_btn = LaunchWutheringWavesButton(clickthrough_button=clickthrough_btn)
-    chat_mode_btn = ChatModeButton(launch_wuwa_button=launch_wuwa_btn)
+    chat_mode_btn = ChatModeButton(layout_anchor=clickthrough_btn)
     bubble = Bubble()
     hint_box = CommandHintBox()
     cmd = CommandDialog(
@@ -43,7 +40,7 @@ def create_pet_window_ui(owner, on_close):
         hint_box=hint_box,
         scale_up_button=scale_up_btn,
         scale_down_button=scale_down_btn,
-        launch_wuwa_button=launch_wuwa_btn,
+        launch_wuwa_button=None,
         chat_mode_button=chat_mode_btn,
     )
     mic_stt_indicator = MicSttIndicator(owner)
@@ -53,7 +50,6 @@ def create_pet_window_ui(owner, on_close):
         '_clickthrough_btn': clickthrough_btn,
         '_scale_up_btn': scale_up_btn,
         '_scale_down_btn': scale_down_btn,
-        '_launch_wuwa_btn': launch_wuwa_btn,
         '_chat_mode_btn': chat_mode_btn,
         '_bubble': bubble,
         '_hint_box': hint_box,

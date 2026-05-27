@@ -1,4 +1,4 @@
-﻿"""AI 设置面板：编辑并保存 config/ollama_config.py。"""
+"""AI 设置面板：编辑并保存 config/ollama_config.py。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ import math
 import os
 import random
 import re
-import subprocess
 import threading
 import webbrowser
 from pathlib import Path
@@ -45,6 +44,7 @@ from config.config import UI_THEME, UI
 from config.font_config import get_ui_font, get_digit_font
 from config.scale import scale_px
 from config.shared_storage import ensure_shared_config_ready, get_shared_config_path
+from lib.script.app.win_subprocess import popen as _subprocess_popen_hidden, run as _subprocess_run_hidden
 from lib.script.ui.ai_settings_validators import validate_ai_values
 from lib.script.ui.ai_settings_storage import load_ai_values, save_ai_values, apply_ai_runtime
 from lib.script.ui.ai_settings_tabs import (
@@ -98,7 +98,7 @@ _DEFAULT_VALUES = {
     "auto_companion_enabled": True,
 }
 
-_WATERMARK_TEXT = "Aemeath\nAIsetting"
+_WATERMARK_TEXT = "学术爱丽丝\nAIsetting"
 _TITLE_FONT_SIZE = scale_px(19, min_abs=14)   # 14 + 5xp
 _CONFIG_FONT_SIZE = scale_px(14, min_abs=10)  # 12 + 2xp
 _DROPDOWN_ITEM_FONT_SIZE = max(scale_px(8, min_abs=8), _CONFIG_FONT_SIZE - scale_px(2, min_abs=1))
@@ -106,6 +106,21 @@ _PANEL_SCALE = 1.05
 _LEFT_WM_SCALE = 2.0 / 3.0
 _AI_HINT_TEXT = "保存后会写入本地 AI 配置文件，建议重启程序后完整生效"
 _GENERAL_HINT_TEXT = "保存后会写入本地配置文件，建议重启程序后完整生效"
+# 控制面板「场景对象 / 云音乐」等：说明配置与桌面对应关系（用户常找不到入口）
+_CATEGORY_USAGE_BLURB: dict[str, str] = {
+    "scene_objects": (
+        "这些项控制雪豹、雪堆、沙发等「桌面小物件」的生成范围与行为。\n\n"
+        "怎么用到：在桌宠上右键 → 打开底部输入框 → 先输入 # 可浏览全部 # 命令；"
+        "再输入例如 #雪堆 2、#雪豹 2、#沙发 1、#摩托 1、#闹钟 30、#音响 1（具体格式以 # 列表里说明为准）。\n"
+        "爱丽丝科研工作台：托盘同名菜单或输入 #工作台（#学术 与 #工作台 同效）。\n"
+        "小提示：雪堆上可互动关联雪豹；#沙发重力、#音响重力 等可开关部分物体的重力。"
+    ),
+    "audio_music": (
+        "本页含总音量、语音、云音乐搜索/缓存/曲库路径等。\n\n"
+        "云音乐怎么打开：在命令框输入 #音响 1 在屏幕放下音响；在音响上「右键」打开/切换云音乐搜索与播放；需要登录时会弹出扫码窗口。\n"
+        "「音量」「语音」分组调节朗读与游戏音量；「云音乐」分组多为搜索条数、缓存目录等高级选项。"
+    ),
+}
 _TITLE_ROW_FIXED_HEIGHT = scale_px(34, min_abs=28)
 _HINT_FONT_SIZE = max(scale_px(12, min_abs=9), _CONFIG_FONT_SIZE - scale_px(2, min_abs=1))
 _SCROLLBAR_RIGHT_SHIFT = scale_px(10, min_abs=8)
@@ -207,7 +222,6 @@ _GENERAL_CONFIG_CATEGORIES = [
         "sections": [
             ("TIMEOUTS", "超时"),
             ("TOOL_DISPATCHER", "工具调度"),
-            ("CLOUD_MUSIC", "鸣潮设置"),
             ("DRAW", "绘制"),
             ("STARTUP", "启动"),
         ],
@@ -217,12 +231,20 @@ _GENERAL_CONFIG_CATEGORIES = [
 _CATEGORY_KEY_ALLOWLIST = {
     "ui_anim": {
         "ANIMATION": {"frame_fps", "gif_fps", "start_exit_enabled"},
-        "UI": {"pet_opacity", "ui_widget_opacity", "ui_fade_duration", "auto_hide_mouse_distance"},
+        "UI": {
+            "pet_opacity",
+            "pet_stays_on_top",
+            "ui_widget_opacity",
+            "ui_fade_duration",
+            "auto_hide_mouse_distance",
+            "ui_font_scale_percent",
+        },
         "COMMAND_DIALOG": {"idle_timeout_ms"},
     },
     "behavior_physics": {
         "PARTICLES": {"enable_stroke", "fade_threshold"},
         "BEHAVIOR": {
+            "auto_wander_enabled",
             "wander_near_speaker_radius",
             "double_click_ticks",
             "move_max_speed",
@@ -311,9 +333,6 @@ _CATEGORY_KEY_ALLOWLIST = {
             "idle_close_ms",
         },
         "TOOL_DISPATCHER": set(),
-        "CLOUD_MUSIC": {
-            "launch_wuwa_path",
-        },
         "DRAW": {
             "scale",
         },
@@ -325,9 +344,11 @@ _CATEGORY_KEY_ALLOWLIST = {
 
 _GENERAL_BOOL_KEYS: set[tuple[str, str]] = {
     ("ANIMATION", "start_exit_enabled"),
+    ("BEHAVIOR", "auto_wander_enabled"),
     ("PARTICLES", "enable_stroke"),
     ("MORTOR", "bgm_enabled"),
     ("STARTUP", "ensure_desktop_shortcut"),
+    ("UI", "pet_stays_on_top"),
 }
 
 _GENERAL_NUMERIC_RULES: dict[tuple[str, str], tuple[str, float, float]] = {
@@ -337,6 +358,7 @@ _GENERAL_NUMERIC_RULES: dict[tuple[str, str], tuple[str, float, float]] = {
     ("UI", "ui_widget_opacity"): ("number", 0.0, 1.0),
     ("UI", "ui_fade_duration"): ("int", 0, 5000),
     ("UI", "auto_hide_mouse_distance"): ("int", 0, 5000),
+    ("UI", "ui_font_scale_percent"): ("int", 70, 200),
     ("COMMAND_DIALOG", "idle_timeout_ms"): ("int", 0, 3600000),
     ("PARTICLES", "fade_threshold"): ("number", 0.0, 1.0),
     ("BEHAVIOR", "wander_near_speaker_radius"): ("int", 0, 10000),
@@ -447,9 +469,11 @@ _KEY_FRIENDLY_NAME = {
         "cmd_window_height": "命令框高度",
         "bubble_max_width": "气泡最大宽度",
         "pet_opacity": "桌宠透明度",
+        "pet_stays_on_top": "主桌宠与场景道具始终置顶在前",
         "ui_widget_opacity": "UI控件透明度",
         "ui_fade_duration": "淡入淡出时长(ms)",
         "auto_hide_mouse_distance": "自动关闭阈值",
+        "ui_font_scale_percent": "全局字号缩放(%)",
     },
     "ANIMATION": {
         "pet_size": "宠物尺寸",
@@ -473,6 +497,7 @@ _KEY_FRIENDLY_NAME = {
         "offset_y": "垂直偏移",
     },
     "BEHAVIOR": {
+        "auto_wander_enabled": "允许自动漫游",
         "auto_behavior_interval": "自动行为间隔(ms)",
         "auto_wander_interval": "自动漫游间隔(ms)",
         "wander_near_speaker_radius": "音响漫游半径",
@@ -530,7 +555,6 @@ _KEY_FRIENDLY_NAME = {
         "search_result_limit": "搜索结果上限(首)",
         "cache_dir": "缓存目录",
         "local_music_dir": "本地音乐文件夹",
-        "launch_wuwa_path": "启动鸣潮路径文件",
     },
     "SNOW_LEOPARD": {
         "gif_file": "GIF资源路径",
@@ -620,8 +644,6 @@ def _friendly_section_name(dict_name: str, fallback: str = "") -> str:
 
 
 def _friendly_field_section_name(dict_name: str, key: str) -> str:
-    if str(dict_name) == "CLOUD_MUSIC" and str(key) == "launch_wuwa_path":
-        return "鸣潮设置"
     return _friendly_section_name(dict_name, dict_name)
 
 
@@ -805,7 +827,7 @@ def _decode_process_output(raw: bytes) -> str:
 
 
 def _run_capture_text(cmd: list[str], timeout: int = 2) -> tuple[int, str, str]:
-    result = subprocess.run(cmd, capture_output=True, text=False, timeout=timeout)
+    result = _subprocess_run_hidden(cmd, capture_output=True, text=False, timeout=timeout)
     stdout = _decode_process_output(result.stdout or b"")
     stderr = _decode_process_output(result.stderr or b"")
     return result.returncode, stdout, stderr
@@ -1784,6 +1806,25 @@ class AISettingsPanel(QWidget):
         content_layout = QVBoxLayout(scroll_content)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(scale_px(10))
+
+        usage_text = _CATEGORY_USAGE_BLURB.get(category_id)
+        if usage_text:
+            usage_lbl = QLabel(usage_text)
+            usage_lbl.setWordWrap(True)
+            usage_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            bh = UI_THEME["border"].name()
+            usage_lbl.setStyleSheet(
+                f"QLabel {{ color: #222222; font-size: {_HINT_FONT_SIZE}px; "
+                f"padding: {scale_px(10, min_abs=8)}px; "
+                f"background-color: rgba(255, 255, 255, 140); "
+                f"border: 2px solid {bh}; }}"
+            )
+            self._set_widget_description(
+                usage_lbl,
+                "该分类配置的桌面入口与用法说明",
+            )
+            content_layout.addWidget(usage_lbl)
+
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll, 1)
 
@@ -2112,12 +2153,7 @@ class AISettingsPanel(QWidget):
         pair = (str(dict_name), str(key))
         return pair in {
             ("CLOUD_MUSIC", "local_music_dir"),
-            ("CLOUD_MUSIC", "launch_wuwa_path"),
         }
-
-    @staticmethod
-    def _is_launch_wuwa_path_field(dict_name: str, key: str) -> bool:
-        return str(dict_name) == "CLOUD_MUSIC" and str(key) == "launch_wuwa_path"
 
     @staticmethod
     def _is_volume_slider_field(dict_name: str, key: str, value) -> bool:
@@ -2201,10 +2237,7 @@ class AISettingsPanel(QWidget):
 
         open_btn = QPushButton("浏览")
         open_btn.setFixedWidth(scale_px(52, min_abs=46))
-        if self._is_launch_wuwa_path_field(dict_name, key):
-            open_btn.clicked.connect(lambda _=False, line=editor: self._browse_launch_wuwa_file(line))
-        else:
-            open_btn.clicked.connect(lambda _=False, line=editor: self._browse_local_music_dir(line))
+        open_btn.clicked.connect(lambda _=False, line=editor: self._browse_local_music_dir(line))
         row.addWidget(open_btn, 0)
         return editor, open_btn, group
 
@@ -2232,28 +2265,6 @@ class AISettingsPanel(QWidget):
         if selected:
             editor.setText(os.path.normpath(selected))
 
-    def _browse_launch_wuwa_file(self, editor: QLineEdit) -> None:
-        start_dir = _project_root()
-        current_text = str(editor.text() or "").strip()
-        if current_text:
-            expanded = os.path.expandvars(os.path.expanduser(current_text))
-            candidate = Path(expanded)
-            if not candidate.is_absolute():
-                candidate = _project_root() / candidate
-            if candidate.exists():
-                start_dir = candidate.parent if candidate.is_file() else candidate
-            elif candidate.parent.exists() and candidate.parent.is_dir():
-                start_dir = candidate.parent
-
-        selected, _ = QFileDialog.getOpenFileName(
-            self,
-            "选择鸣潮启动文件",
-            str(start_dir),
-            "启动文件 (*.exe *.bat *.lnk);;可执行文件 (*.exe);;批处理 (*.bat);;快捷方式 (*.lnk);;所有文件 (*.*)",
-        )
-        if selected:
-            editor.setText(os.path.normpath(selected))
-
     def _on_open_ollama_app(self) -> None:
         candidates: list[Path] = []
         local_app = os.getenv("LOCALAPPDATA")
@@ -2272,7 +2283,7 @@ class AISettingsPanel(QWidget):
                     if hasattr(os, "startfile"):
                         os.startfile(str(candidate))  # type: ignore[attr-defined]
                     else:
-                        subprocess.Popen([str(candidate)], shell=False)
+                        _subprocess_popen_hidden([str(candidate)], shell=False)
                     self._emit_info("已尝试打开 Ollama 应用，请在其中下载或管理模型。", min_tick=10, max_tick=90)
                     return
                 except Exception as e:
@@ -2682,27 +2693,6 @@ class AISettingsPanel(QWidget):
                 candidate = _project_root() / normalized
             if candidate.exists() and not candidate.is_dir():
                 self._raise_config_value_error(dict_name, key, "必须指向文件夹路径")
-            return
-
-        if pair == ("CLOUD_MUSIC", "launch_wuwa_path"):
-            if not isinstance(value, str):
-                self._raise_config_value_error(dict_name, key, "必须为文本路径")
-            normalized = value.strip()
-            if not normalized:
-                return
-            if "\n" in normalized or "\r" in normalized:
-                self._raise_config_value_error(dict_name, key, "路径包含非法换行字符")
-
-            expanded = os.path.expandvars(os.path.expanduser(normalized))
-            candidate = Path(expanded)
-            if not candidate.is_absolute():
-                candidate = _project_root() / candidate
-
-            ext = candidate.suffix.lower()
-            if ext not in (".exe", ".bat", ".lnk"):
-                self._raise_config_value_error(dict_name, key, "仅支持 .exe / .bat / .lnk 文件")
-            if candidate.exists() and not candidate.is_file():
-                self._raise_config_value_error(dict_name, key, "必须指向文件路径")
             return
 
         if pair == ("VOICE", "microphone_push_to_talk_key"):
@@ -3702,8 +3692,14 @@ class AISettingsPanel(QWidget):
             apply_ai_runtime(ai_values, _DEFAULT_VALUES)
             _apply_general_runtime(general_values)
             self._apply_all_external_config_fields()
+            try:
+                from config.font_config import init_font_config
+
+                init_font_config()
+            except Exception:
+                pass
             self._reset_shared_on_next_save = False
-            self._emit_info("控制面板设置已保存，重启程序后完整生效。")
+            self._emit_info("控制面板设置已保存；全局字号缩放已写入，建议重启程序后所有界面统一生效。")
             return True
         except Exception as e:
             _logger.error("保存控制面板设置失败: %s", e)

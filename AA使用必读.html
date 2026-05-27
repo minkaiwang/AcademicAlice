@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>飞行雪绒资料舱 · LTS1.0.5pre1</title>
+    <title>学术爱丽丝资料舱 · LTS1.0.5pre1</title>
     <style>
         @font-face {
             font-family: 'HarmonyOS Sans';
@@ -53,9 +53,36 @@
         .hero p {
             margin: 0.8rem auto 0;
             font-size: 1.1rem;
-            color: var(--cyan);
-            max-width: 720px;
+            color: rgba(255, 218, 230, 0.95);
+            max-width: 820px;
             line-height: 1.6;
+        }
+        .usage-links a {
+            color: var(--pink);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .usage-links a:hover { color: var(--cyan); }
+        .upstream-quote {
+            margin: 1rem 0 0;
+            padding: 1rem 1rem 1rem 1.1rem;
+            border-left: 4px solid var(--pink);
+            background: rgba(5, 9, 18, 0.55);
+            color: rgba(248, 251, 255, 0.92);
+            font-size: 0.95rem;
+            line-height: 1.55;
+        }
+        .upstream-cite {
+            margin: 0.5rem 0 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.65);
+        }
+        .merged-h3 {
+            font-size: 1.25rem;
+            color: var(--cyan);
+            margin: 1.5rem 0 0.5rem;
+            border-left: 4px solid var(--pink);
+            padding-left: 0.65rem;
         }
         section {
             margin-bottom: 3rem;
@@ -153,15 +180,6 @@
             max-width: 720px;
             margin-bottom: 1rem;
             line-height: 1.5;
-        }
-        .top-panels {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-        .top-panel {
-            flex: 1 1 320px;
-            min-width: 0;
         }
         .trail-container {
             position: fixed;
@@ -265,17 +283,45 @@
     <div class="trail-container" id="trail-root"></div>
     <main>
         <div class="hero">
-            <h1>飞行雪绒资料舱</h1>
-            <p>贡献 + 赞助 + 文档 · LTS1.0.5pre1<br>基于项目默认配色 + 粒子灵感打造，方便在浏览器里查阅 doc 与贡献记录。生成时间：2026-03-19 15:08:45</p>
+            <h1>学术爱丽丝资料舱</h1>
+            <p>桌宠 × 科研工作台合并版 · 贡献记录 · 文档 · LTS1.0.5pre1<br>本页由脚本根据仓库内文本自动生成，仅供查阅；权利义务与素材范围以各源文件及根目录 LICENSE 类文件为准。粉青配色与粒子动效为门户样式。生成时间：2026-05-27 13:29:13</p>
         </div>
-        <section id="top-panels">
-            <div class="top-panels">
-                <div class="top-panel">
-                    <h2>贡献列表</h2>
-                    <div class="cards">
+        <section id="merged-readme">
+            <h2>合并版 · 使用必读</h2>
+            <p class="section-desc">
+                本应用在<strong>同一 Windows 进程</strong>中整合了两类组件：（1）<strong>桌宠与 AI 交互</strong>，代码与资源与「飞行雪绒 / FlyingSnowVelvet-Aemeath」系项目同源或可溯源，非代码素材的权属与限制见 <code>LICENSE-ASSETS</code>；
+                （2）<strong>科研工作台</strong>为内嵌静态页（<code>resc/workbench/</code>），在信息架构与交互上参考了
+                <a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener">AugustUp/phd_master_system</a>（MIT），本仓已做 Tailwind 本地化、主题与宿主衔接等改造，<strong>不等同于</strong>对该上游仓库的完整镜像。
+                论文、项目、任务等数据以浏览器内 <strong>科研工作台</strong> 为主（多存于本机页面存储）；应用侧学术库路径见 <code>PROGRESS.md</code>、<code>resc/workbench/README.txt</code>。
+            </p>
+            <h3 class="merged-h3">博士工作台 · 上游仓库</h3>
+            <p class="section-desc" style="margin-top:0.35rem;">
+                原仓库：<a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener noreferrer">AugustUp/phd_master_system</a>（MIT）。
+                下列文字为该仓库 readme 的<strong>摘录</strong>，著作权与立场归原维护者；若与 GitHub 最新 readme 不一致，以原仓库为准。
+            </p>
+            <blockquote class="upstream-quote">
+                感谢小红书用户分享的源文件，我在原有基础上完善了桌面端与移动端适配，并新增了坚果云网盘数据同步功能。 衷心鸣谢直接提供源码参考的用户： 「不是黑子是癫子」— 小红书号：61709040774 「橘子汽水」— 小红书号：romantic_Ksir 同时也向为上述源码提供者贡献内容的原始作者们致以谢意。本项目仅用于学习交流，非商业用途、未用于盈利。如涉及侵权，请通过 Issue 联系，我将立即处理删库。
+            </blockquote>
+            <p class="upstream-cite">摘录目的：向博士工作台来源链路的贡献者致谢；本分支内嵌页为改编实现，非上游应用完整镜像。</p>
+            <h3 class="merged-h3">本分支维护者（合并与文档署名）</h3>
+            <p class="section-desc" style="margin-top:0.35rem;">
+                哔哩哔哩「靓点迷人」（标识 <code>bili_2719061712</code>，空间 <a href="https://space.bilibili.com/2719061712" target="_blank" rel="noopener noreferrer">space.bilibili.com/2719061712</a>）；
+                小红书「皮鼓很痒」（小红书号 <code>533497202</code>）。
+                应用内托盘「关注作者」链接以 <code>app_brand.py</code> 中 <code>AUTHOR_BILIBILI_SPACE_URL</code> 为准，可与本段文档署名分别配置。
+            </p>
+            <ul class="section-desc usage-links" style="margin-top:0;padding-left:1.25rem;">
+                <li><strong>相对「分别使用桌宠与工作台」的主要差异（概要）</strong>：统一产品与人设「学术爱丽丝」、<code>resc/persona.txt</code> 系统提示、专用聊天窗口（粉系 UI，与桌旁气泡共用聊天管线）、命令面板 / 托盘与学术模块的联动、工作台多主题与离线 bundle 说明见 <code>resc/workbench/README.txt</code>。</li>
+                <li><strong>工程文档</strong>：<a href="PRODUCT.md">PRODUCT.md</a>（品牌与中文口径）、<a href="PROGRESS.md">PROGRESS.md</a>（里程碑与技术约定）、<a href="README.md">README.md</a>（仓库总览）。</li>
+                <li><strong>操作入口摘要</strong>：见下方 DOC 区「合并项目与使用入口」卡片原文。</li>
+            </ul>
+        </section>
+        <section id="contrib">
+            <h2>贡献列表</h2>
+            <p class="section-desc">以下内容来自 <code>doc/贡献名单和主播的狗盆/</code> 下匹配 <code>开发贡献*.txt</code> 的文件原文，仅作署名与致谢记录；与当前维护者商业行为无关。</p>
+            <div class="cards">
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-19 15:05</div>
+                <div class="eyebrow">2026-05-03 11:20</div>
                 <h3>开发贡献</h3>
                 <a class="download" href="doc/贡献名单和主播的狗盆/开发贡献.txt" download>下载原文件</a>
             </header>
@@ -320,6 +366,12 @@
 贡献:chenwr727/yuanbao-free-api-元宝 OpenAI 兼容中转服务基础项目（以源码压缩包形式集成到 services/bundles/）
 ===https://github.com/chenwr727/yuanbao-free-api
 
+贡献:jsososo/QQMusicApi-QQ 音乐用户歌单/我喜欢歌单接口兼容逻辑参考（已适配集成到 lib/script/qqmusic/qqmisic.py）
+===https://github.com/jsososo/QQMusicApi
+
+贡献:listen1/listen1_chrome_extension-QQ 音乐歌单解析与兼容请求参数参考（已适配集成到 lib/script/qqmusic/qqmisic.py）
+===https://github.com/listen1/listen1_chrome_extension
+
 ai平台技术支持:
 ===claude-CODE	(核心架构)
 ===IFLOW心流平台	(代码协助)
@@ -343,100 +395,24 @@ ai平台技术支持:
 如认为内容涉及侵权，请携带权属证明联系作者，核实后将立即删除
 
 默认素材来源：鸣潮-库洛游戏
+
 </pre>
         </article>
-                    </div>
-                </div>
-                <div class="top-panel">
-                    <h2>赞助列表</h2>
-                    <div class="cards">
-        <article class="card">
-            <header>
-                <div class="eyebrow">2026-03-17 23:52</div>
-                <h3>感谢大佬投喂名单</h3>
-                <a class="download" href="doc/贡献名单和主播的狗盆/感谢大佬投喂名单.txt" download>下载原文件</a>
-            </header>
-            <pre>赞助排名不分先后
-
-~~~粉丝群QQ~~~
-
-Natsuki_蒼海
-繁华
-玖汐
-寂漓
-漓烟
-Skadi⭐Sirin
-柒
-[_____]
-飞行弗绒王
-留白.
-琉璃玲珑煞
-超
-指挥官
-1
-
-~~~微信赞赏~~~
-
-jl
-ost
-Grunt
-[匿名]
-锦鲤丶🍉
-雪域雄鹰
-云雀
-远航星的告白
-v1
-Thallium Acid
-[匿名]
-鱼虾一碗
-[匿名]
-飞舞贝利亚
-沉默bu语
-Tsuika
-菌
-。。。。
-Jeese
-糖猫现世
-[匿名]
-重生之我成了财神爷的小娇妻
-
-~~~b站充电~~~
-
-盐焗冰柯乐
-赛琳娜鸭
-kailYum
-轻羽洛
--某盐-
-76713284233-bili
-原神鸣潮崩铁代肝啵哩
-不会取名的橘
-神B丶B神
-初音Miku</pre>
-        </article>
-                    </div>
-                </div>
             </div>
-        </section>
-        <section id="dog-bowl">
-            <h2>狗盆墙</h2>
-            <figure>
-                <img src="doc/贡献名单和主播的狗盆/如果想给作者买鸡腿饭的话/喵-感谢支持喵-欢迎工单喵.jpg" alt="感谢支持喵">
-                <figcaption>如果想给作者买鸡腿饭的话 · 原图</figcaption>
-            </figure>
         </section>
         <section id="documents">
             <h2>DOC</h2>
             <div class="cards">
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-19 14:28</div>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>README</h3>
                 <a class="download" href="doc/README.txt" download>下载原文件</a>
             </header>
-            <pre>飞行雪绒文档索引（LTS1.0.5pre1）
+            <pre>学术爱丽丝项目文档索引（LTS1.0.5pre1）
 
 适用范围
-- 本目录文档对应当前工程：飞行雪绒LTS1.0.5pre1
+- 本目录文档对应当前工程：学术爱丽丝 LTS1.0.5pre1（基于原飞行雪绒代码基线）
 - 以源码为准，文档用于快速定位实现与扩展入口
 
 项目现状速览
@@ -488,11 +464,11 @@ kailYum
         </article>
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-17 23:52</div>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>Script开发指南</h3>
                 <a class="download" href="doc/Script开发指南.txt" download>下载原文件</a>
             </header>
-            <pre>飞行雪绒 Script 开发指南（按当前代码）
+            <pre>学术爱丽丝 Script 开发指南（按当前代码）
 
 1. 启动与自动发现
 - 主入口：`lib/script/main.py`
@@ -647,11 +623,11 @@ class DemoParticle:
         </article>
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-17 23:52</div>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>事件系统使用说明</h3>
                 <a class="download" href="doc/事件系统使用说明.txt" download>下载原文件</a>
             </header>
-            <pre>飞行雪绒事件系统使用说明（按当前代码）
+            <pre>学术爱丽丝事件系统使用说明（按当前代码）
 
 1. 核心机制
 实现位置
@@ -776,11 +752,75 @@ PET_TELEPORT
         </article>
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-17 23:52</div>
+                <div class="eyebrow">2026-05-27 13:18</div>
+                <h3>合并项目与使用入口</h3>
+                <a class="download" href="doc/合并项目与使用入口.txt" download>下载原文件</a>
+            </header>
+            <pre>================================================================================
+学术爱丽丝 — 合并项目说明与使用入口（与 README / PROGRESS 同步维护）
+================================================================================
+
+【本分支维护者（合并与文档）】
+
+- 哔哩哔哩：昵称「靓点迷人」，站内标识 bili_2719061712，个人空间 https://space.bilibili.com/2719061712
+  （若 MID 与账号不一致，请维护者更正链接）。
+- 小红书：昵称「皮鼓很痒」，小红书号 533497202。
+
+应用内托盘「关注作者」仍以 app_brand.py 的 AUTHOR_BILIBILI_SPACE_URL 为准；本段仅供文档署名。
+
+【合并了哪些东西】
+
+1) 桌宠与 AI 陪伴基线
+   基于「飞行雪绒 / FlyingSnowVelvet-Aemeath」类 Windows 桌宠：PyQt5 常驻、音乐、语音、
+   AI 聊天、托盘与命令行等。素材与上游名称权属见仓库根目录 LICENSE-ASSETS。
+
+2) 科研工作台（学术论文向）
+   内嵌页面资源在 resc/workbench/，主文件 research_workbench.html（旧名 phd_workbench.html
+   可作回退）。设计与交互参考 **博士工作台** 原仓库：
+   https://github.com/AugustUp/phd_master_system （MIT）。该仓库 readme 中写明（摘录，以
+   GitHub 原文为准）：感谢小红书用户分享的源文件，维护者在原有基础上完善了桌面端与移动
+   端适配并新增坚果云网盘数据同步；鸣谢提供源码参考的小红书用户「不是黑子是癫子」
+   （61709040774）、「橘子汽水」（romantic_Ksir），并向更上游贡献者致谢；项目声明为
+   学习交流、非商业盈利，侵权联系 Issue 删库。本仓已 Tailwind 本地化、多主题与 PyQt 内嵌
+   宿主衔接，非上游完整镜像。技术细节见 resc/workbench/README.txt。
+
+【本分支相对「桌宠与工作台分开使用」的主要差异（概要，非功能承诺）】
+
+- 同一进程：桌宠与科研工作台共用托盘 / 命令面板；论文、项目、任务等工作台数据在浏览器内管理，
+  减少「再开一个浏览器标签」的上下文切换。
+- 产品与人设：学术爱丽丝（学术桌面助手），人格见 resc/persona.txt；对外名以 app_brand.py
+  为准。
+- 专用聊天窗口：命令提示里「与学术爱丽丝聊天」打开独立窗口，发送仍走与桌旁气泡相同的
+  聊天管线；界面为粉系与主 UI 一致。
+- 数据以本地为主；工作台 localStorage 键名见 PROGRESS.md / workbench README（勿随意改
+  以免丢配置）。
+
+【必读操作入口】
+
+- 启动：解压后保持文件夹完整，运行主程序（见 README 下载与安装）。
+- 科研工作台：从应用内菜单 / 托盘等入口打开（以当前版本 UI 为准）；断网时图表等外链
+  可能不可用。
+- 文档：根目录 README.md（GitHub 式总览）、PRODUCT.md（品牌与中文口径）、PROGRESS.md
+  （里程碑与技术 SSOT）；浏览器打开 AA使用必读.html 可查阅贡献原文与 doc/*.txt（门户由脚本生成，
+  不含赞助/打赏展示）。
+
+【修改与再分发】
+
+- 原作与贡献方声明见「贡献列表」卡片中的开发贡献原文；许可与修改范围以 LICENSE-CODE、
+  LICENSE-ASSETS 及上游声明为准，勿将「免费可改」理解为可违反素材或商用限制的许可。
+- 科研工作台上游 MIT；合并后请同时遵守 LICENSE-ASSETS 与各子目录声明，勿将禁止商用的
+  素材用于违规盈利场景。
+
+================================================================================
+</pre>
+        </article>
+        <article class="card">
+            <header>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>粒子效果说明</h3>
                 <a class="download" href="doc/粒子效果说明.txt" download>下载原文件</a>
             </header>
-            <pre>飞行雪绒粒子效果说明（当前注册项）
+            <pre>学术爱丽丝粒子效果说明（当前注册项）
 
 1. 总览
 入口与渲染
@@ -918,11 +958,11 @@ Event(EventType.PARTICLE_REQUEST, {
         </article>
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-17 23:52</div>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>调度系统使用说明</h3>
                 <a class="download" href="doc/调度系统使用说明.txt" download>下载原文件</a>
             </header>
-            <pre>飞行雪绒调度系统使用说明（按当前代码）
+            <pre>学术爱丽丝调度系统使用说明（按当前代码）
 
 1. 调度器结构
 实现位置
@@ -1010,11 +1050,11 @@ pet.cancel_task(task_id)
         </article>
         <article class="card">
             <header>
-                <div class="eyebrow">2026-03-18 13:57</div>
+                <div class="eyebrow">2026-05-03 12:07</div>
                 <h3>迁移清单任务</h3>
                 <a class="download" href="doc/迁移清单任务.txt" download>下载原文件</a>
             </header>
-            <pre>﻿飞行雪绒 迁移清单任务
+            <pre>﻿学术爱丽丝 迁移清单任务
 ========================
 
 当前整体进度：86%
@@ -1154,10 +1194,63 @@ Phase 8 - 工具与清理
 3. 继续拆分 `lib/script/ui/ai_settings_panel.py` 的 widgets / tabs 组装逻辑，进一步收缩面板类中的 UI 样板与旧结构。
 </pre>
         </article>
+        <article class="card">
+            <header>
+                <div class="eyebrow">2026-05-03 12:07</div>
+                <h3>音乐多源优化方案计划</h3>
+                <a class="download" href="doc/音乐多源优化方案计划.txt" download>下载原文件</a>
+            </header>
+            <pre>学术爱丽丝音乐模块多源优化方案计划
+================================
+
+一、目标
+1. 统一 QQ / 酷狗 / 网易云 provider 边界，降低宿主层对平台细节的感知。
+2. 引入多源搜索路由与失败回退，提升搜索可用性与命中率。
+3. 记录 provider 健康度，为后续播放 URL 回退、歌单同步、插件化做准备。
+
+二、分阶段改造计划
+阶段 1：统一协议层
+- 梳理现有 `lib/script/music` 抽象层，补齐 provider 标签、能力声明、模式支持判断。
+- 将宿主统一入口固定为 `MusicService`，避免 UI / 工具层继续直接感知平台实现。
+
+阶段 2：搜索路由层
+- 新增 `SourceRouter`，默认优先当前平台，再按配置顺序回退其它平台。
+- 搜索结果使用统一去重规则，避免相同歌曲在多源下重复展示。
+- 在混合结果中标注来源平台，减少用户误判。
+
+阶段 3：健康度治理
+- 记录 provider 搜索耗时、成功 / 失败次数、连续失败次数、最近错误信息。
+- 回退顺序优先健康度更好的 provider，弱化失效平台影响。
+
+阶段 4：播放回退（后续）
+- 当当前平台 URL 解析失败时，基于标题 / 歌手 / 时长尝试跨源匹配备用音源。
+- 在播放器侧增加“保留原平台优先，跨源仅兜底”的策略开关。
+
+阶段 5：登录与资料库治理（后续）
+- 统一二维码登录状态机、Cookie 持久化、登录失效探测。
+- 抽象喜欢列表 / 歌单同步模型，减少 provider 专属分支散落。
+
+阶段 6：外置 provider（后续）
+- 将 QQ / 酷狗适配器拆分为独立模块或独立仓库，向插件化靠拢。
+
+三、本次改造落地范围
+1. 完成阶段 1：补齐 provider 协议元信息。
+2. 完成阶段 2：新增多源搜索路由与去重。
+3. 完成阶段 3：新增 provider 搜索健康度统计。
+4. UI / 工具搜索结果增加来源标识。
+
+四、验收标准
+1. 当前平台搜索正常返回时，结果优先来自当前平台。
+2. 当前平台结果不足或失败时，可自动补充其它平台结果。
+3. 混合结果不会大量重复歌曲。
+4. 搜索展示可识别来源平台。
+5. 现有播放、登录、历史记录功能不被破坏。
+</pre>
+        </article>
             </div>
         </section>
     </main>
-    <footer>由飞行雪绒 LTS1.0.5pre1 代码生成 · 粉粉青青也是科技感 (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧</footer>
+    <footer>由 <code>scripts/generate_doc_portal.py</code> 根据仓库内文本生成 · LTS1.0.5pre1 · 不含赞助或打赏展示区块</footer>
     <script>
     (() => {
         const letters = "FLYINGSNOWVELVET";

