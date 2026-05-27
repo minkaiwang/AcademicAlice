@@ -15,7 +15,7 @@ RESOURCE_RELEASE_DATE = APP_RELEASE_DATE
 
 # Github 仓库（owner/repo），供自动更新与链接展示复用
 # 与 git remote origin 一致（发布 / 更新检查用）
-GITHUB_REPO = "minkaiwang/FlyingSnowVelvet-Aemeath"
+GITHUB_REPO = "minkaiwang/AcademicAlice"
 
 
 def as_dict() -> dict[str, str]:
