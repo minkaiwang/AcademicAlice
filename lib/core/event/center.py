@@ -71,7 +71,7 @@ class EventType(Enum):
     UI_CREATE = "ui_create"                              # UI 组件创建请求
     UI_ANCHOR_RESPONSE = "ui_anchor_response"            # 锚点坐标响应
     UI_HINT_PICK = "ui_hint_pick"                        # 命令提示框条目点击
-    UI_OPEN_ALICE_CHAT_HISTORY = "ui_open_alice_chat_history"  # 打开「聊天记录」只读窗口
+    UI_OPEN_AEMEATH_CHAT_HISTORY = "ui_open_aemeath_chat_history"  # 打开「聊天记录」只读窗口
     UI_SCENE_STAYS_ON_TOP_CHANGED = "ui_scene_stays_on_top_changed"  # 主桌宠有效置顶变化；data: {stays_on_top: bool}
     AUTOSTART_STATUS_CHANGE = "autostart_status_change"  # 开机启动状态变化
 

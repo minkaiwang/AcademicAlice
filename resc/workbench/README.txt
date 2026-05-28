@@ -1,4 +1,4 @@
-爱丽丝科研工作台（本目录静态资源）
+爱弥斯科研工作台（本目录静态资源）
 ========================================
 
 - **主页面**：`research_workbench.html`（旧名 `phd_workbench.html` 仍可作为回退；基于 [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system) 单文件，MIT）

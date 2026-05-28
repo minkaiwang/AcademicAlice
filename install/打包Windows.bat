@@ -4,7 +4,7 @@ REM UTF-8 BOM + chcp 65001 breaks cmd line parsing on many setups; keep this fil
 cd /d "%~dp0.."
 
 echo.
-echo === AcademicAlice / deskpet - Windows pack (PyInstaller onedir) ===
+echo === AemeathDeskPet / deskpet - Windows pack (PyInstaller onedir) ===
 echo Uses python_executable from py.ini when present; else py -3 or python from PATH.
 echo.
 
@@ -63,7 +63,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [DONE] Zip folder dist\AcademicAlice and share. Run AcademicAlice.exe inside it.
+echo [DONE] Zip folder dist\AemeathDeskPet and share. Run AemeathDeskPet.exe inside it.
 echo Logs go to logs\ next to the exe after first successful run.
 echo.
 pause

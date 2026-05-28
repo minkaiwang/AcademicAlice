@@ -1,6 +1,6 @@
-# 学术爱丽丝（Academic Alice）— 学术桌面助手
+# 爱弥斯（Aemeath）— 学术桌面助手
 
-**Windows 常驻应用**：在桌面一侧提供 **AI 桌宠陪伴**，并通过浏览器内 **爱丽丝科研工作台** 承载论文、项目与任务进度（本机页面）。对外显示名、标语以根目录 **`app_brand.py`**（`APP_DISPLAY_NAME` / `APP_TAGLINE`）为准；`config/version_info.py` 导出版本号；AI 系统人格见 **`resc/persona.txt`**。
+**Windows 常驻应用**：在桌面一侧提供 **AI 桌宠陪伴**，并通过浏览器内 **爱弥斯科研工作台** 承载论文、项目与任务进度（本机页面）。对外显示名、标语以根目录 **`app_brand.py`**（`APP_DISPLAY_NAME` / `APP_TAGLINE`）为准；`config/version_info.py` 导出版本号；AI 系统人格见 **`resc/persona.txt`**。
 
 > **重要 · 来源与致谢**  
 > 本仓库是在 **两条上游产品线** 上整合而成；**维护者（靓点迷人 / 皮鼓很痒）仅为整合与改编，不是下表所列原作者。**  
@@ -10,7 +10,7 @@
 
 ## 上游作者与社交平台致谢（必读）
 
-下列链接来自原项目贡献名单或上游仓库公开 readme；**请尊重并支持原作者**，勿将「学术爱丽丝」误认为其官方续作。
+下列链接来自原项目贡献名单或上游仓库公开 readme；**请尊重并支持原作者**，勿将本整合版误认为上游官方续作。
 
 ### 一、桌宠与 AI 基线 ·「飞行雪绒 / FlyingSnowVelvet-Aemeath」
 
@@ -67,7 +67,7 @@
 ## 主要差异（概要，相对单独使用桌宠或单独打开工作台）
 
 - **同一进程、同一套托盘与命令面板**：减少在浏览器与桌宠之间来回切换。
-- **「学术爱丽丝」人设与 UI 统一**：粉青像素风保留；**专用聊天窗口**（命令里「与学术爱丽丝聊天」）为 **粉色系** 独立窗，发送仍走与桌旁气泡相同的聊天管线。
+- **「爱弥斯」人设与 UI 统一**：粉青像素风保留；**专用聊天窗口**（命令里「与爱弥斯聊天」）为 **粉色系** 独立窗，发送仍走与桌旁气泡相同的聊天管线。
 - **本地优先**：论文、项目与工作台配置等以本机存储为主（具体键名与路径以 `PROGRESS.md` / `workbench` README 为准）。
 - **可扩展结构**：管理器 `obj-*` 扫描注册、事件总线等（见 `PROGRESS.md` §2）。
 
@@ -93,7 +93,7 @@ python install/install_deps.py
 # 按 PROGRESS.md 与 resc/workbench/README.txt 构建工作台 CSS（若修改 HTML）
 ```
 
-**Windows 绿色包（给未装 Python 的好友）**：在已能本地运行的环境下双击 **`打包Windows.bat`**（或 **`install/打包Windows.bat`**），使用 **`install/deskpet.spec`**；产物为 `dist/AcademicAlice/`。将整个 **`AcademicAlice` 文件夹** 压缩为 zip 发送即可。打包用的 Python 必须与运行依赖一致（需已安装 **PyQt5**）。
+**Windows 绿色包（给未装 Python 的好友）**：在已能本地运行的环境下双击 **`打包Windows.bat`**（或 **`install/打包Windows.bat`**），使用 **`install/deskpet.spec`**；产物为 `dist/AemeathDeskPet/`。将整个 **`AemeathDeskPet` 文件夹** 压缩为 zip 发送即可。打包用的 Python 必须与运行依赖一致（需已安装 **PyQt5**）。
 
 **安装与依赖文件**集中在 **`install/`**（`install_deps.py`、`requirements.txt`、打包脚本等）；根目录 **`requirements.txt`** 仅一行 `-r install/requirements.txt`，便于 `pip install -r requirements.txt` 习惯不变。
 
@@ -129,7 +129,7 @@ python install/install_deps.py
 
 ## English summary
 
-**Academic Alice** is a Windows desk-pet app merged with an embedded **research workbench** (MIT-inspired UI in `resc/workbench/`, not a full upstream mirror) and **local-first** academic scheduling / papers / project tracking. Persona: `resc/persona.txt`. Assets: see **`LICENSE-ASSETS`**.
+**Aemeath** is a Windows desk-pet app merged with an embedded **research workbench** (MIT-inspired UI in `resc/workbench/`, not a full upstream mirror) and **local-first** academic scheduling / papers / project tracking. Persona: `resc/persona.txt`. Assets: see **`LICENSE-ASSETS`**.
 
 **Upstream credit (not the fork maintainer):** (1) Desk-pet baseline — **Mark42 的铁镐**, Bilibili [486401719](https://space.bilibili.com/486401719), FlyingSnowVelvet-Aemeath lineage; (2) Workbench — **[AugustUp](https://github.com/AugustUp)** / [phd_master_system](https://github.com/AugustUp/phd_master_system) (MIT), plus Xiaohongshu sources cited in upstream readme: **不是黑子是癫子** (`61709040774`), **橘子汽水** (`romantic_Ksir`). Full tables: Chinese section **「上游作者与社交平台致谢」** and [`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md).
 

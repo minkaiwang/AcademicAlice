@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>爱丽丝科研工作台 · v9</title>
+  <title>爱弥斯科研工作台 · v9</title>
   <!-- 样式使用本地 tailwind.bundle.css，避免 cdn.tailwindcss.com 的生产环境告警与对 CDN 的强依赖；更新 HTML 后请重建 CSS（见 resc/workbench/README.txt） -->
   <link rel="stylesheet" href="./tailwind.bundle.css" />
   <link rel="icon" href="data:," />
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     html { font-size: clamp(14px, 0.35vw + 13px, 16px); }
-    /* 粉彩主题令牌（由 JS 写入 document.documentElement.style；首屏默认爱丽丝粉） */
+    /* 粉彩主题令牌（由 JS 写入 document.documentElement.style；首屏默认爱弥斯粉） */
     :root {
       --wb-primary: #E6A4B4;
       --wb-secondary: #F3D7CA;
@@ -541,7 +541,7 @@
       <i class="fa-solid fa-bars"></i>
     </button>
     <div class="min-w-0 flex-1">
-      <div class="text-[11px] text-calm-mute font-bold tracking-wide uppercase">Alice Research</div>
+      <div class="text-[11px] text-calm-mute font-bold tracking-wide uppercase">Aemeath Research</div>
       <div id="mobileNavSectionTitle" class="font-black text-base truncate">今日总览</div>
     </div>
     <div class="w-11 h-11"></div>
@@ -555,7 +555,7 @@
           <i class="fa-solid fa-graduation-cap text-xl"></i>
         </div>
         <div>
-          <div class="font-black text-lg leading-tight">爱丽丝科研工作台</div>
+          <div class="font-black text-lg leading-tight">爱弥斯科研工作台</div>
         </div>
       </div>
 
@@ -1683,8 +1683,8 @@
             <div class="small-stat p-4 space-y-3 max-h-[min(70vh,520px)] overflow-y-auto scroll-thin" id="wbThemeRadioHost">
               <div class="font-black text-lg">选择主题</div>
               <label class="flex items-start gap-3 cursor-pointer rounded-2xl border border-calm-line bg-white/70 p-3 hover:bg-white transition">
-                <input type="radio" name="wbTheme" value="alice-pink" class="mt-1 accent-pink-400" checked />
-                <div><div class="font-bold">爱丽丝粉彩（默认）</div><div class="text-xs text-calm-mute mt-1">#E6A4B4 · #F3D7CA · #FFF8E3 · #F5EEE6</div></div>
+                <input type="radio" name="wbTheme" value="aemeath-pink" class="mt-1 accent-pink-400" checked />
+                <div><div class="font-bold">爱弥斯粉彩（默认）</div><div class="text-xs text-calm-mute mt-1">#E6A4B4 · #F3D7CA · #FFF8E3 · #F5EEE6</div></div>
               </label>
               <label class="flex items-start gap-3 cursor-pointer rounded-2xl border border-calm-line bg-white/70 p-3 hover:bg-white transition">
                 <input type="radio" name="wbTheme" value="pastel-purple" class="mt-1 accent-pink-400" />
@@ -1981,8 +1981,9 @@
     const PREF_WB_THEME_KEY = `${STORAGE_KEY}__wb_theme_v2`;
     const CUSTOM_WB_THEMES_KEY = `${STORAGE_KEY}__wb_custom_themes_v1`;
     const LEGACY_COLOR_PRESET_KEY = `${STORAGE_KEY}__color_preset`;
+    const WB_DEFAULT_THEME_ID = 'aemeath-pink';
     const WB_BUILTIN_THEMES = [
-      { id: 'alice-pink', name: '爱丽丝粉彩（默认）', primary: '#E6A4B4', secondary: '#F3D7CA', accent: '#FFF8E3', bg: '#F5EEE6', ink: '#5c4a52' },
+      { id: 'aemeath-pink', name: '爱弥斯粉彩（默认）', primary: '#E6A4B4', secondary: '#F3D7CA', accent: '#FFF8E3', bg: '#F5EEE6', ink: '#5c4a52' },
       { id: 'pastel-purple', name: '粉紫梦境', primary: '#7469B6', secondary: '#AD88C6', accent: '#E1AFD1', bg: '#FFE6E6', ink: '#3d3557' },
       { id: 'pastel-teal', name: '雾青奶油', primary: '#92C7CF', secondary: '#AAD7D9', accent: '#FBF9F1', bg: '#E5E1DA', ink: '#2f4548' },
       { id: 'pastel-mint', name: '薄荷苏打', primary: '#ACE1AF', secondary: '#B0EBB4', accent: '#BFF6C3', bg: '#E0FBE2', ink: '#28452d' },
@@ -2181,12 +2182,22 @@
       localStorage.setItem(PREF_SIDEBAR_HIDDEN_KEY, sidebarHidden ? '1' : '0');
       applySidebarHidden(sidebarHidden);
     }
+    function normalizeWorkbenchThemeId(themeId) {
+      const id = String(themeId || '').trim();
+      if (!id || id === 'alice-pink') return WB_DEFAULT_THEME_ID;
+      return id;
+    }
     function migrateLegacyWorkbenchTheme() {
       try {
-        if (localStorage.getItem(PREF_WB_THEME_KEY)) return;
+        const cur = localStorage.getItem(PREF_WB_THEME_KEY);
+        if (cur) {
+          const norm = normalizeWorkbenchThemeId(cur);
+          if (norm !== cur) localStorage.setItem(PREF_WB_THEME_KEY, norm);
+          return;
+        }
         const leg = localStorage.getItem(LEGACY_COLOR_PRESET_KEY);
         if (leg === 'dopamine') localStorage.setItem(PREF_WB_THEME_KEY, 'dopamine');
-        else localStorage.setItem(PREF_WB_THEME_KEY, 'alice-pink');
+        else localStorage.setItem(PREF_WB_THEME_KEY, WB_DEFAULT_THEME_ID);
       } catch (_) { /* ignore */ }
     }
     function loadCustomWorkbenchThemes() {
@@ -2218,7 +2229,7 @@
       return b ? { primary: b.primary, secondary: b.secondary, accent: b.accent, bg: b.bg, ink: b.ink } : null;
     }
     function applyWorkbenchTheme(themeId) {
-      const id = themeId === 'dopamine' ? 'dopamine' : String(themeId || 'alice-pink');
+      const id = themeId === 'dopamine' ? 'dopamine' : String(themeId || 'aemeath-pink');
       if (id === 'dopamine') {
         document.documentElement.setAttribute('data-color-preset', 'dopamine');
         ['--wb-primary', '--wb-secondary', '--wb-accent', '--wb-bg', '--wb-ink'].forEach((k) => {
@@ -2237,16 +2248,16 @@
       document.documentElement.style.setProperty('--wb-ink', t.ink);
     }
     function persistWorkbenchTheme(themeId) {
-      const id = String(themeId || 'alice-pink');
+      const id = String(themeId || 'aemeath-pink');
       localStorage.setItem(PREF_WB_THEME_KEY, id);
       applyWorkbenchTheme(id);
       refreshAppearancePanel();
     }
     function loadWorkbenchTheme() {
       migrateLegacyWorkbenchTheme();
-      let id = localStorage.getItem(PREF_WB_THEME_KEY) || 'alice-pink';
+      let id = localStorage.getItem(PREF_WB_THEME_KEY) || 'aemeath-pink';
       if (id !== 'dopamine' && !getWorkbenchTokens(id)) {
-        id = 'alice-pink';
+        id = 'aemeath-pink';
         localStorage.setItem(PREF_WB_THEME_KEY, id);
       }
       applyWorkbenchTheme(id);
@@ -2272,7 +2283,7 @@
     function updateWorkbenchPreview() {
       const host = $('wbThemePreview');
       if (!host) return;
-      const id = localStorage.getItem(PREF_WB_THEME_KEY) || 'alice-pink';
+      const id = localStorage.getItem(PREF_WB_THEME_KEY) || 'aemeath-pink';
       if (id === 'dopamine') {
         host.innerHTML = '<span class="text-xs text-calm-mute">多巴胺主题为原版渐变，不使用五档令牌。</span>';
         return;
@@ -2292,7 +2303,7 @@
       ].map(([h, l]) => sw(h, l)).join('');
     }
     function refreshAppearancePanel() {
-      const cur = localStorage.getItem(PREF_WB_THEME_KEY) || 'alice-pink';
+      const cur = localStorage.getItem(PREF_WB_THEME_KEY) || 'aemeath-pink';
       renderCustomWorkbenchRadios();
       document.querySelectorAll('input[name="wbTheme"]').forEach((r) => {
         r.checked = r.value === cur;
@@ -2349,11 +2360,11 @@
       alert(editId ? '已更新配色。' : '已添加配色并已切换。');
     }
     function deleteWorkbenchCustomTheme(id) {
-      if (!id || !confirm('确定删除该配色？若正在使用将切回默认爱丽丝粉彩。')) return;
+      if (!id || !confirm('确定删除该配色？若正在使用将切回默认爱弥斯粉彩。')) return;
       const list = loadCustomWorkbenchThemes().filter((x) => x.id !== id);
       saveCustomWorkbenchThemes(list);
       const cur = localStorage.getItem(PREF_WB_THEME_KEY) || '';
-      if (cur === `custom:${id}`) persistWorkbenchTheme('alice-pink');
+      if (cur === `custom:${id}`) persistWorkbenchTheme('aemeath-pink');
       else refreshAppearancePanel();
       alert('已删除。');
     }
@@ -2382,7 +2393,7 @@
       if ($('btnSaveAppearancePrefs')) {
         $('btnSaveAppearancePrefs').onclick = () => {
           const sel = document.querySelector('input[name="wbTheme"]:checked');
-          persistWorkbenchTheme(sel ? sel.value : 'alice-pink');
+          persistWorkbenchTheme(sel ? sel.value : 'aemeath-pink');
           alert('当前主题已写入本机偏好。');
         };
       }
@@ -2408,7 +2419,7 @@
       const titleEl = $('mobileNavSectionTitle');
       if (!titleEl) return;
       const activeBtn = document.querySelector('.nav-btn.active span');
-      titleEl.textContent = activeBtn ? activeBtn.textContent.trim() : '爱丽丝科研工作台';
+      titleEl.textContent = activeBtn ? activeBtn.textContent.trim() : '爱弥斯科研工作台';
     }
     function openMobileDrawer() {
       if (!isMobileViewport()) return;

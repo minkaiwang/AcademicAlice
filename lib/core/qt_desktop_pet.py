@@ -18,7 +18,7 @@ def _startup_error_title() -> str:
 
         return f"{APP_DISPLAY_NAME} 启动失败"
     except Exception:
-        return "学术爱丽丝 启动失败"
+        return "爱弥斯 启动失败"
 
 
 def _show_startup_error(message: str) -> None:
@@ -84,7 +84,7 @@ if __name__ == '__main__':
             exe_dir = os.path.dirname(os.path.abspath(sys.executable))
             msg = (
                 f"缺少运行库模块：{missing}\n\n"
-                "【使用方式】请解压整个 AcademicAlice 文件夹后再运行其中的 AcademicAlice.exe，"
+                "【使用方式】请解压整个 AemeathDeskPet 文件夹后再运行其中的 AemeathDeskPet.exe，"
                 "不要只复制单个 exe 到别处；好友电脑无需安装 Python。\n\n"
                 "【若仍缺模块】多为打包环境未完整收集 Qt。请用已安装 PyQt5 的 Python 3.11 或 3.12 "
                 "在仓库根目录重新执行打包；不推荐用 3.14 等过新版本打正式包。\n\n"

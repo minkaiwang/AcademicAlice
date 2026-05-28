@@ -54,11 +54,11 @@ _DEFAULT_HINTS: list[str] = [
     '/-执行cmd命令',
     '#-快捷命令',
     '聊天-在命令行输入，气泡旁回复',
-    '聊天记录-查看与爱丽丝的对话',
-    '工作台-浏览器打开爱丽丝科研工作台',
+    '聊天记录-查看与爱弥斯的对话',
+    '工作台-浏览器打开爱弥斯科研工作台',
     '#工作台-快捷打开（与 #学术 同效）',
 ]
-_DEFAULT_SIDE_LABEL = 'Alice'
+_DEFAULT_SIDE_LABEL = 'Aemeath'
 _DEFAULT_SIDE_LABEL_HIGHLIGHT = 'RUNcmd'
 _SIDE_LABEL_GAP_X = scale_px(8, min_abs=1)
 _SIDE_LABEL_PAD_R = scale_px(6, min_abs=1)
@@ -437,7 +437,7 @@ class CommandHintBox(QWidget):
                 elif row == 2:
                     self._event_center.publish(Event(EventType.UI_HINT_PICK, {'focus_only': True}))
                 elif row == 3:
-                    self._event_center.publish(Event(EventType.UI_OPEN_ALICE_CHAT_HISTORY, {}))
+                    self._event_center.publish(Event(EventType.UI_OPEN_AEMEATH_CHAT_HISTORY, {}))
                 elif row == 4:
 
                     def _open_workbench() -> None:

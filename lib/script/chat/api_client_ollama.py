@@ -17,7 +17,7 @@ class _ApiClientOllamaMixin(_ApiClientCommonMixin, _ApiClientErrorMixin):
         """
         从人格文本中提取角色名。
 
-        匹配常见格式："你是学术爱丽丝，" / "你是学术爱丽丝。" / "你是学术爱丽丝（" 等。
+        匹配常见格式："你是爱弥斯，" / "你是爱弥斯。" / "你是爱弥斯（" 等。
         无法匹配时返回通用占位符 "助手"。
         """
         m = re.search(r'你是([^，,。（(）)\s]{1,10})[，,。（(）)\s]', persona)

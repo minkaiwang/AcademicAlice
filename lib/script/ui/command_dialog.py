@@ -48,12 +48,12 @@ class CommandDialog(QWidget):
         self._hint_box = hint_box  # 引用命令提示框
         self._scale_up_button = scale_up_button  # 引用放大按钮
         self._scale_down_button = scale_down_button  # 引用缩小按钮
-        self._launch_wuwa_button = launch_wuwa_button  # 可选；学术爱丽丝分支为 None
+        self._launch_wuwa_button = launch_wuwa_button  # 可选；本分支未装配
         self._chat_mode_button = chat_mode_button  # 语音/文字模式切换按钮
 
         # 输入框
         self._entry = QLineEdit(self)
-        self._entry.setPlaceholderText("/ 命令 · # 快捷 · 或直接输入与爱丽丝聊天")
+        self._entry.setPlaceholderText("/ 命令 · # 快捷 · 或直接输入与爱弥斯聊天")
         self._entry.setFont(get_cmd_font())
         self._entry.setStyleSheet(scale_style_px(f"""
             QLineEdit {{
@@ -113,7 +113,7 @@ class CommandDialog(QWidget):
         self._event_center.subscribe(EventType.UI_COMMAND_TOGGLE, self._on_command_toggle)
         # 订阅提示框点击事件（默认提示项点击填充输入）
         self._event_center.subscribe(EventType.UI_HINT_PICK, self._on_hint_pick)
-        self._event_center.subscribe(EventType.UI_OPEN_ALICE_CHAT_HISTORY, self._on_open_alice_chat_history)
+        self._event_center.subscribe(EventType.UI_OPEN_AEMEATH_CHAT_HISTORY, self._on_open_aemeath_chat_history)
 
         # 输入框回车：解析并发布输入事件
         self._entry.returnPressed.connect(self._on_return_pressed)
@@ -390,12 +390,12 @@ class CommandDialog(QWidget):
             self._entry.setText(str(text))
             self._entry.setCursorPosition(len(self._entry.text()))
 
-    def _on_open_alice_chat_history(self, _event: Event) -> None:
+    def _on_open_aemeath_chat_history(self, _event: Event) -> None:
         """打开「聊天记录」只读窗口；对话仍在命令行 + 气泡。"""
         try:
-            from lib.script.ui.alice_chat_dialog import open_alice_chat_history_dialog
+            from lib.script.ui.aemeath_chat_dialog import open_aemeath_chat_history_dialog
 
-            open_alice_chat_history_dialog(parent=self.window())
+            open_aemeath_chat_history_dialog(parent=self.window())
         except Exception:
             pass
 

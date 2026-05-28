@@ -98,7 +98,7 @@ _DEFAULT_VALUES = {
     "auto_companion_enabled": True,
 }
 
-_WATERMARK_TEXT = "学术爱丽丝\nAIsetting"
+_WATERMARK_TEXT = "爱弥斯\nAIsetting"
 _TITLE_FONT_SIZE = scale_px(19, min_abs=14)   # 14 + 5xp
 _CONFIG_FONT_SIZE = scale_px(14, min_abs=10)  # 12 + 2xp
 _DROPDOWN_ITEM_FONT_SIZE = max(scale_px(8, min_abs=8), _CONFIG_FONT_SIZE - scale_px(2, min_abs=1))
@@ -112,7 +112,7 @@ _CATEGORY_USAGE_BLURB: dict[str, str] = {
         "这些项控制雪豹、雪堆、沙发等「桌面小物件」的生成范围与行为。\n\n"
         "怎么用到：在桌宠上右键 → 打开底部输入框 → 先输入 # 可浏览全部 # 命令；"
         "再输入例如 #雪堆 2、#雪豹 2、#沙发 1、#摩托 1、#闹钟 30、#音响 1（具体格式以 # 列表里说明为准）。\n"
-        "爱丽丝科研工作台：托盘同名菜单或输入 #工作台（#学术 与 #工作台 同效）。\n"
+        "爱弥斯科研工作台：托盘同名菜单或输入 #工作台（#学术 与 #工作台 同效）。\n"
         "小提示：雪堆上可互动关联雪豹；#沙发重力、#音响重力 等可开关部分物体的重力。"
     ),
     "audio_music": (

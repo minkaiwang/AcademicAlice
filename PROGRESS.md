@@ -10,7 +10,7 @@
 
 ### 1.1 愿景
 
-在保留现有 **PyQt5 桌面宠物**（`lib/core/pet_window.py` 等）的前提下，将应用演进为 **学术桌面助手**：同一常驻进程内，以 **爱丽丝科研工作台**（浏览器内 `resc/workbench`）承载 **论文与项目进度** 等学术流，并保留音乐、语音、AI 聊天等原有能力作为可选模块。
+在保留现有 **PyQt5 桌面宠物**（`lib/core/pet_window.py` 等）的前提下，将应用演进为 **学术桌面助手**：同一常驻进程内，以 **爱弥斯科研工作台**（浏览器内 `resc/workbench`）承载 **论文与项目进度** 等学术流，并保留音乐、语音、AI 聊天等原有能力作为可选模块。
 
 ### 1.2 首期范围（应做）
 
@@ -19,10 +19,10 @@
 | 论文 / 项目 / 任务 | 进度与记录留在本机工作台页面 | 详细交互以 `resc/workbench` 为准；非「闹钟」装饰对象 |
 | （可选后续）Python 侧同步 | 本地 SQLite 与工作台双向同步 | 未实施前仅预留 `deskpet_academic.db` 路径 |
 
-### 1.3 品牌与人设（学术爱丽丝）
+### 1.3 品牌与人设（爱弥斯）
 
 - **产品与对外表述（暂行）**：集中写在 **`PRODUCT.md`**（定位、中文介绍稿、用户触点索引、上游关系口径）。本节的工程约束仍以代码为准。
-- **对外显示名**：根目录 `app_brand.py` 中 `APP_DISPLAY_NAME`（默认 **学术爱丽丝**）、`APP_TAGLINE`（**学术桌面助手**）；`config/version_info.py` 再导出以便与版本号同读。托盘提示、单实例提示框、桌面快捷方式、启动失败弹窗、`install/install_deps.py` 横幅等均应 **`from app_brand import ...`**（或在已加载 `config` 后从 `version_info` 读），避免散落硬编码；**勿**在仅运行 `install/install_deps`、尚未安装 PyQt5 的环境依赖 `config` 包入口。
+- **对外显示名**：根目录 `app_brand.py` 中 `APP_DISPLAY_NAME`（默认 **爱弥斯**）、`APP_TAGLINE`（**学术桌面助手**）；`config/version_info.py` 再导出以便与版本号同读。托盘提示、单实例提示框、桌面快捷方式、启动失败弹窗、`install/install_deps.py` 横幅等均应 **`from app_brand import ...`**（或在已加载 `config` 后从 `version_info` 读），避免散落硬编码；**勿**在仅运行 `install/install_deps`、尚未安装 PyQt5 的环境依赖 `config` 包入口。
 - **AI 系统人格**：`resc/persona.txt`（聊天 / Ollama 等 system prompt）；离线兜底回复规则见 `lib/script/chat/bot_reply.py`，须与上述人设一致。
 - **与原作关系**：仓库仍可基于原「飞行雪绒」代码与资源；`LICENSE-ASSETS` 中对上游名称与素材的声明仍然适用。贡献名单等处保留「爱弥斯」等 **原作资源署名** 不等同于当前产品人设名。
 
@@ -30,7 +30,7 @@
 
 - 不做多人协作实时同步（无服务端假设）。
 - 不默认把论文全文或科研工作台整页内容发往外部 AI；若以后做「上下文摘要」，须 **显式同意 + 可关闭**。
-- 不替代 Zotero / Notion；定位为 **轻量、本地、与桌宠同屏** 的助手。（产品对外名：**学术爱丽丝**。）
+- 不替代 Zotero / Notion；定位为 **轻量、本地、与桌宠同屏** 的助手。（产品对外名：**爱弥斯**。）
 
 ---
 
@@ -72,7 +72,7 @@
 ### 2.5 托盘与主窗口 UI
 
 - **托盘**：`lib/core/tray_icon.py` 的 `_create_menu()` 使用 `TrayContextMenu`（`lib/script/ui/tray_menu.py`）组装菜单项。  
-- **学术入口**：托盘 **「爱丽丝科研工作台」** 由 `tray_icon` 调用 `workbench_host`（业务逻辑保持简短桥接）。
+- **学术入口**：托盘 **「爱弥斯科研工作台」** 由 `tray_icon` 调用 `workbench_host`（业务逻辑保持简短桥接）。
 
 ### 2.6 配置与用户数据路径（设计参考）
 
@@ -150,10 +150,10 @@
 
 ## 5. UI / 交互设计要点
 
-- **学术能力**：托盘 **「爱丽丝科研工作台」** 或 `#工作台` / `#学术` → 本机 `resc/workbench` 静态页（`lib/script/workbench_host.py`）；与桌宠同进程，数据以工作台页面为准。  
+- **学术能力**：托盘 **「爱弥斯科研工作台」** 或 `#工作台` / `#学术` → 本机 `resc/workbench` 静态页（`lib/script/workbench_host.py`）；与桌宠同进程，数据以工作台页面为准。  
 - **与桌宠**：可选后续在 M3 做「进度摘要」气泡等，须 **显式不过度打扰**。
 
-### 5.1 原作游戏向 UI 剥离（进行中，与学术爱丽丝一致）
+### 5.1 原作游戏向 UI 剥离（进行中，与爱弥斯一致）
 
 基线来自桌宠原作；学术向产品逐步去掉 **《鸣潮》** 专属入口与配置。**视觉风格**（粉青像素、边框层次）保留。
 
@@ -187,7 +187,7 @@
 
 ### M1 — 日历与事件（MVP）【已取消】
 
-- 原 PyQt 日程窗（`academic_dialog` 等）与相关 SQLite 表已删除；用户统一使用 **爱丽丝科研工作台**（浏览器）。
+- 原 PyQt 日程窗（`academic_dialog` 等）与相关 SQLite 表已删除；用户统一使用 **爱弥斯科研工作台**（浏览器）。
 
 ### M2 — 论文与项目
 
@@ -222,7 +222,7 @@
 - **线程**：SQLite 写入集中在 **主线程** 或与 Qt 解耦的 **单写队列**，避免与 Qt UI 跨线程竞争。  
 - **编码**：新建源码文件 **UTF-8**；目录名优先 ASCII（`obj-academic`）。  
 - **与上游同步**：若需合并上游桌宠更新，学术逻辑应局限在 `obj-academic` 与少量 `tray_icon` 钩子，便于 diff。
-- **Windows 绿色包**：`install/deskpet.spec` + 根目录 **`打包Windows.bat`**（转调 `install/打包Windows.bat`）。打包解释器 **必须已安装 PyQt5**（依赖见 `install/requirements.txt`；根目录 `requirements.txt` 为 `-r install/requirements.txt`）。产物为 `dist/AcademicAlice/`，分发时 **整夹** zip。冻结模式下资源根为 `sys._MEIPASS`，`main.py` 会 `chdir` 至该目录；日志仍在 **exe 所在目录** 的 `logs/`。
+- **Windows 绿色包**：`install/deskpet.spec` + 根目录 **`打包Windows.bat`**（转调 `install/打包Windows.bat`）。打包解释器 **必须已安装 PyQt5**（依赖见 `install/requirements.txt`；根目录 `requirements.txt` 为 `-r install/requirements.txt`）。产物为 `dist/AemeathDeskPet/`，分发时 **整夹** zip。冻结模式下资源根为 `sys._MEIPASS`，`main.py` 会 `chdir` 至该目录；日志仍在 **exe 所在目录** 的 `logs/`。
 
 ---
 
@@ -232,7 +232,7 @@
 |---|------|------|------|
 | D1 | 2026-05-03 | 学术能力以 `lib/script/obj-academic/` 为主载体 | 与 `discover_managers()` 约定一致，免改 `plugin_registry` 即可加载 |
 | D2 | 2026-05-03 | 数据层 SQLite 使用 `{共享根}/academic/deskpet_academic.db`（`store_paths.py`） | 与 `shared_storage_paths` 的 `AemeathDeskPet` 根一致，便于备份；表结构随 M1 落地 |
-| D3 | 2026-05-03 | 产品显示名与人设统一为「学术爱丽丝」 | `app_brand.py` 集中配置（避免 `install_deps` 导入 `config` 时强依赖 PyQt5）；`resc/persona.txt` 与 `bot_reply.py` 对齐；单实例 Mutex 名暂不改以免双开旧版 |
+| D3 | 2026-05-03 | 产品显示名与人设统一为「爱弥斯」 | `app_brand.py` 集中配置（避免 `install_deps` 导入 `config` 时强依赖 PyQt5）；`resc/persona.txt` 与 `bot_reply.py` 对齐；单实例 Mutex 名暂不改以免双开旧版 |
 | D4 | 2026-05-03 | 农历与法定假展示依赖 `lunar-python` + `chinesecalendar` | 统一经 `calendar_facade.py` 输出 `DayCalendarInfo`；`requirements.txt` 声明版本；无依赖或异常时降级为仅公历格不崩溃 |
 | D5 | 2026-05-03 | SQLite `user_version = 3`：`categories`、`event_subtasks`，`events`/`todos` 扩展列 | `db.py` 迁移 + `categories_repo` / `subtasks_repo` / `events_repo` / `todos_repo` 与 UI 字段对齐 |
 | D6 | 2026-05-03 | 移除 PyQt 日程栈与 `lunar-python` / `chinesecalendar`；`user_version = 4` 丢弃旧日程表 | 产品以 `resc/workbench` 为学术主界面；`AcademicManager` 仅保留工作台入口与库路径初始化 |
@@ -247,8 +247,8 @@
 
 - 将 `PROGRESS.md` 扩展为 **结合仓库路径的设计说明**：启动链、插件发现规则、事件/`#` 命令/托盘挂接方式、数据表初稿、分层图、里程碑与 ADR。
 - 修正先前草案中「独立 `lib/script/academic/` 包」表述：在未修改 `discover_managers` 的前提下，**默认应使用 `obj-academic` 目录** 才能被自动发现。
-- **品牌与人设**：新增根目录 `app_brand.py`（零依赖）与 `version_info` 再导出；重写 `resc/persona.txt` 为学术爱丽丝；同步托盘/单实例/快捷方式/启动失败弹窗/`install_deps` 文案、`bot_reply.py` 兜底、`command_hint_box` 提示、`AA使用必读.html` 与 `doc/*.txt` 标题、README/CONTRIBUTING 说明。原作语音贡献条仍保留「爱弥斯」署名；单实例 Mutex 仍为 `FeiXingXueRongDesktopPet_SingleInstance`（与旧版互斥，避免同机双开）。
-- **产品文档**：新增根目录 **`PRODUCT.md`**，集中记录学术爱丽丝的定位、中文介绍稿、用户触点与上游口径；`PROGRESS.md` §1.3 已交叉引用。
+- **品牌与人设**：新增根目录 `app_brand.py`（零依赖）与 `version_info` 再导出；重写 `resc/persona.txt` 为爱弥斯；同步托盘/单实例/快捷方式/启动失败弹窗/`install_deps` 文案、`bot_reply.py` 兜底、`command_hint_box` 提示、`AA使用必读.html` 与 `doc/*.txt` 标题、README/CONTRIBUTING 说明。原作语音贡献条仍保留「爱弥斯」署名；单实例 Mutex 仍为 `FeiXingXueRongDesktopPet_SingleInstance`（与旧版互斥，避免同机双开）。
+- **产品文档**：新增根目录 **`PRODUCT.md`**，集中记录爱弥斯的定位、中文介绍稿、用户触点与上游口径；`PROGRESS.md` §1.3 已交叉引用。
 - **UI 规划**：在 `PROGRESS.md` §5.1、里程碑 **UX-1**、`PRODUCT.md` §6 记录「右键 / 设置 / 控制面板」中《鸣潮》相关入口（如「启动鸣潮」）的后续移除或替换方向，实施时同步更新文档勾选与变更日志。
 
 ### 2026-05-04
@@ -276,7 +276,7 @@
 
 ### 2026-05-03（#命令 · 日程 → 工作台）
 
-- **当前行为**：`#工作台` / `#学术` 与托盘 **「爱丽丝科研工作台」** 一致，打开本机 `resc/workbench/research_workbench.html`（`lib/script/workbench_host.py`）。`#日程` 命令与 PyQt 日程窗已随后续精简移除（见下 **「移除内置日程」**）。
+- **当前行为**：`#工作台` / `#学术` 与托盘 **「爱弥斯科研工作台」** 一致，打开本机 `resc/workbench/research_workbench.html`（`lib/script/workbench_host.py`）。`#日程` 命令与 PyQt 日程窗已随后续精简移除（见下 **「移除内置日程」**）。
 
 ### 2026-05-03（移除内置日程）
 
@@ -285,15 +285,15 @@
 - `hash_cmd_registry` 仅保留 **工作台**、**学术** 两个词条（`#日程` 不再注册）。
 - 右键命令提示区含 `#工作台` 快捷说明；`hash_cmd_registry` 由 `AcademicManager` 注册。
 
-### 2026-05-03（爱丽丝科研工作台 · 页面）
+### 2026-05-03（爱弥斯科研工作台 · 页面）
 
 - **上游署名**：页面信息架构与交互参考 [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（MIT，博士工作台原仓库）；原维护者在 readme 中对小红书来源与用户等的致谢及项目性质说明，以 **摘录** 形式写在根目录 `README.md`、`resc/workbench/README.txt` 与 `scripts/generate_doc_portal.py` 生成的 `AA使用必读.html` 中，**全文以原仓库为准**。
 - **资源**：`resc/workbench/`（`research_workbench.html`、`tailwind.bundle.css`、`tailwind.workbench.config.js`、`tailwind.input.css`、`sync/ui.js`）。
-- **品牌与主题**：页面标题与侧栏为「爱丽丝科研工作台」；侧栏 **「外观设置」** 内置 6 套粉彩（爱丽丝粉 / 粉紫 / 雾青 / 薄荷 / 鼠尾草 / 蜂蜜抹茶）+ **高饱和多巴胺**；支持 **我的配色** 自定义五档 HEX 的增删改（`…__wb_custom_themes_v1`），当前主题 `…__wb_theme_v2`（可为 `custom:<id>`）；粉彩走 `data-color-preset="pastel"` 与 `--wb-*` 变量。
+- **品牌与主题**：页面标题与侧栏为「爱弥斯科研工作台」；侧栏 **「外观设置」** 内置 6 套粉彩（爱弥斯粉 / 粉紫 / 雾青 / 薄荷 / 鼠尾草 / 蜂蜜抹茶）+ **高饱和多巴胺**；支持 **我的配色** 自定义五档 HEX 的增删改（`…__wb_custom_themes_v1`），当前主题 `…__wb_theme_v2`（可为 `custom:<id>`）；粉彩走 `data-color-preset="pastel"` 与 `--wb-*` 变量。
 - **构建**：本地 Tailwind 产物替代 CDN，消除生产环境 Tailwind CDN 告警；更新 HTML 后需按 `resc/workbench/README.txt` 重建 CSS。
 - **浏览器兼容**：粉彩层使用 `color-mix()`，需较新 Chromium / Safari；过旧内核可改用「多巴胺」主题。
 - **入口与文案**：静态页主文件名为 **`research_workbench.html`**（`workbench_host` 优先加载，旧 `phd_workbench.html` 可作回退）；页面内「博士论文」等已改为「学术论文」等表述；导出文件名 `research_daily_review_*.md`、`research_workspace_backup_*.json`。
-- **聊天 / 聊天记录**：命令提示区「聊天-在命令行输入…」点击后仅 **`UI_HINT_PICK` + `focus_only`** 聚焦命令行；「聊天记录-…」发布 **`UI_OPEN_ALICE_CHAT_HISTORY`**，由 `CommandDialog` 打开 **`alice_chat_dialog.AliceChatHistoryDialog`**（只读，数据来自 `StreamMemory` / 本地 memory）；对话与 **`INPUT_CHAT`** 仍在命令行 + 气泡。
+- **聊天 / 聊天记录**：命令提示区「聊天-在命令行输入…」点击后仅 **`UI_HINT_PICK` + `focus_only`** 聚焦命令行；「聊天记录-…」发布 **`UI_OPEN_AEMEATH_CHAT_HISTORY`**，由 `CommandDialog` 打开 **`aemeath_chat_dialog.AemeathChatHistoryDialog`**（只读，数据来自 `StreamMemory` / 本地 memory）；对话与 **`INPUT_CHAT`** 仍在命令行 + 气泡。
 
 ### 2026-05-03（M1 · 日程提醒）【历史，已随「移除内置日程」下线】
 
@@ -305,12 +305,12 @@
 
 ### 2026-05-04（命令行占位 · 主桌宠置顶）
 
-- **命令框**：占位符由 `cmd` 改为「`/ 命令 · # 快捷 · 或直接输入与爱丽丝聊天`」（`command_dialog.py`）。
+- **命令框**：占位符由 `cmd` 改为「`/ 命令 · # 快捷 · 或直接输入与爱弥斯聊天`」（`command_dialog.py`）。
 - **主桌宠置顶**：`config_ui.UI['pet_stays_on_top']`（默认 `True`）；控制面板「界面与动画 → 界面」增加布尔项 **主桌宠与场景道具始终置顶在前**；`PetWindow` 每 30 帧与保存后配置对齐，关闭时去掉 `WindowStaysOnTopHint` 并从 `TopmostManager` **unregister**，避免 Win32 周期性强置顶；**鼠标穿透**开启时仍强制置顶以保证可操作恢复流程（`pet_window_setup.finalize_pet_window_startup` 仅在需要时 register）。
 
 ### 2026-05-04（学术路线：先 A 再 B 再 C）
 
-- 约定实施顺序：**A** 爱丽丝科研工作台功能检视与修 bug（`resc/workbench`）→ **B** 备份 / 导出 / 换机路径做清楚（对齐工作台导出与托盘或文档入口）→ **C** 桌宠与工作台联动（本地「今日摘要」等，默认不外连）。详见 **§6「学术后续路线（约定优先级：A → B → C）」**；M3 未勾选项对应 B 与 C。
+- 约定实施顺序：**A** 爱弥斯科研工作台功能检视与修 bug（`resc/workbench`）→ **B** 备份 / 导出 / 换机路径做清楚（对齐工作台导出与托盘或文档入口）→ **C** 桌宠与工作台联动（本地「今日摘要」等，默认不外连）。详见 **§6「学术后续路线（约定优先级：A → B → C）」**；M3 未勾选项对应 B 与 C。
 
 ### 2026-05-04（路线 A · 工作台健壮性）
 
@@ -318,7 +318,7 @@
 
 ### 2026-05-05（Windows 绿色包 · PyInstaller）
 
-- 新增 **`install/deskpet.spec`**（onedir → `dist/AcademicAlice/`）、**`install/打包Windows.bat`**；根目录 **`打包Windows.bat`** 为快捷转调。
+- 新增 **`install/deskpet.spec`**（onedir → `dist/AemeathDeskPet/`）、**`install/打包Windows.bat`**；根目录 **`打包Windows.bat`** 为快捷转调。
 - **冻结资源路径**：`main.py` 在存在 `sys._MEIPASS` 时 `chdir` 至该目录；`config/shared_storage_paths.get_project_root()` 在 `frozen` 时返回 `_MEIPASS`，与 `workbench_host._bundle_root()` 一致。
 - **README.md** §开发者、`PROGRESS.md` §7 补充分发说明。
 

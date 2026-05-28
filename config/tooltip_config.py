@@ -52,7 +52,7 @@ TOOLTIPS: dict[str, str] = {
     'tray_cleanup_history':     '清空所有平台音乐历史与登录数据，不清理缓存',
     'tray_ai_settings':         '打开控制面板（含 AI 设置）',
     'tray_cloud_music':         '召唤音响（若场上没有）并打开云音乐搜索；也可右键点音响或命令 #音响 1',
-    'tray_workbench':           '在浏览器打开爱丽丝科研工作台（本机页面，见 resc/workbench）',
+    'tray_workbench':           '在浏览器打开爱弥斯科研工作台（本机页面，见 resc/workbench）',
     'tray_follow_author':       '打开作者 B 站主页',
     'tray_quit':                '退出程序',
 }

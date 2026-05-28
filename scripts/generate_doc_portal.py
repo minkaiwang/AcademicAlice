@@ -76,7 +76,7 @@ def _generate_portal() -> str:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>学术爱丽丝资料舱 · LTS1.0.5pre1</title>
+    <title>爱弥斯资料舱 · LTS1.0.5pre1</title>
     <style>
         @font-face {{
             font-family: 'HarmonyOS Sans';
@@ -310,7 +310,7 @@ def _generate_portal() -> str:
     <div class="trail-container" id="trail-root"></div>
     <main>
         <div class="hero">
-            <h1>学术爱丽丝资料舱</h1>
+            <h1>爱弥斯资料舱</h1>
             <p>{hero_subtitle}<br>本页由脚本根据仓库内文本自动生成，仅供查阅；权利义务与素材范围以各源文件及根目录 LICENSE 类文件为准。粉青配色与粒子动效为门户样式。生成时间：{timestamp}</p>
         </div>
         <section id="merged-readme">
@@ -348,7 +348,7 @@ def _generate_portal() -> str:
                 应用内托盘「关注作者」链接以 <code>app_brand.py</code> 中 <code>AUTHOR_BILIBILI_SPACE_URL</code> 为准，可与本段文档署名分别配置。
             </p>
             <ul class="section-desc usage-links" style="margin-top:0;padding-left:1.25rem;">
-                <li><strong>相对「分别使用桌宠与工作台」的主要差异（概要）</strong>：统一产品与人设「学术爱丽丝」、<code>resc/persona.txt</code> 系统提示、专用聊天窗口（粉系 UI，与桌旁气泡共用聊天管线）、命令面板 / 托盘与学术模块的联动、工作台多主题与离线 bundle 说明见 <code>resc/workbench/README.txt</code>。</li>
+                <li><strong>相对「分别使用桌宠与工作台」的主要差异（概要）</strong>：统一产品与人设「爱弥斯」、<code>resc/persona.txt</code> 系统提示、专用聊天窗口（粉系 UI，与桌旁气泡共用聊天管线）、命令面板 / 托盘与学术模块的联动、工作台多主题与离线 bundle 说明见 <code>resc/workbench/README.txt</code>。</li>
                 <li><strong>工程文档</strong>：<a href="PRODUCT.md">PRODUCT.md</a>（品牌与中文口径）、<a href="PROGRESS.md">PROGRESS.md</a>（里程碑与技术约定）、<a href="README.md">README.md</a>（仓库总览）。</li>
                 <li><strong>操作入口摘要</strong>：见下方 DOC 区「合并项目与使用入口」卡片原文。</li>
             </ul>

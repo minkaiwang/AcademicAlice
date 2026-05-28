@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""学术爱丽丝（学术桌面助手）— 依赖安装与启动器。
+"""爱弥斯（学术桌面助手）— 依赖安装与启动器。
 
 基于原 Flying Snow Velvet LTS 安装流程；流程:
 1. 扫描系统 Python, 选择可用且版本最优的解释器.
@@ -903,7 +903,7 @@ def _stream_download_with_progress(url, dest_path, *, label, timeout=30, chunk_s
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "AcademicAliceDeskPetInstaller/1.0",
+            "User-Agent": "AemeathDeskPetInstaller/1.0",
             "Accept": "application/zip, application/octet-stream, */*",
         },
     )
@@ -1038,7 +1038,7 @@ def ensure_vosk_models():
 
 def launch(python_exe):
     """Launch main script, prefer pythonw if available."""
-    _print_stage(6, "启动学术爱丽丝桌面助手...")
+    _print_stage(6, "启动爱弥斯桌面助手...")
 
     main_script = PROJECT_ROOT / "lib" / "core" / "qt_desktop_pet.py"
     if not main_script.exists():
@@ -1073,7 +1073,7 @@ def main():
     try:
         from app_brand import APP_DISPLAY_NAME, APP_TAGLINE
     except Exception:
-        APP_DISPLAY_NAME, APP_TAGLINE = ("学术爱丽丝", "学术桌面助手")
+        APP_DISPLAY_NAME, APP_TAGLINE = ("爱弥斯", "学术桌面助手")
 
     print("=" * 56)
     print(f" {APP_DISPLAY_NAME} · {APP_TAGLINE} — 安装与启动")

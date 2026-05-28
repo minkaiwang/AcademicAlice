@@ -1,4 +1,4 @@
-"""学术助手管理器：学术库路径初始化；`#工作台` / `#学术` 打开爱丽丝科研工作台。"""
+"""学术助手管理器：学术库路径初始化；`#工作台` / `#学术` 打开爱弥斯科研工作台。"""
 
 from __future__ import annotations
 
@@ -18,12 +18,12 @@ _WORKBENCH_HASH_NAMES = ("工作台", "学术")
 
 
 class AcademicManager(BaseManager):
-    """学术相关能力的聚合入口（打开爱丽丝科研工作台网页）。"""
+    """学术相关能力的聚合入口（打开爱弥斯科研工作台网页）。"""
 
     MANAGER_ID = "academic"
-    DISPLAY_NAME = "爱丽丝科研工作台"
+    DISPLAY_NAME = "爱弥斯科研工作台"
     COMMAND_TRIGGER = "工作台"
-    COMMAND_HELP = "在浏览器中打开爱丽丝科研工作台（本机页面）"
+    COMMAND_HELP = "在浏览器中打开爱弥斯科研工作台（本机页面）"
 
     def __init__(self, entity=None) -> None:
         self._entity = entity
@@ -36,7 +36,7 @@ class AcademicManager(BaseManager):
         return cls(entity)
 
     def _on_hash_command(self, event: Event) -> None:
-        """#工作台 / #学术：打开爱丽丝科研工作台（与托盘菜单一致）。"""
+        """#工作台 / #学术：打开爱弥斯科研工作台（与托盘菜单一致）。"""
         text = str(event.data.get("text", "") or "").strip()
         if not text:
             return
@@ -50,7 +50,7 @@ class AcademicManager(BaseManager):
 
                 open_workbench_in_browser()
             except Exception as e:
-                _logger.warning("[Academic] 打开爱丽丝科研工作台失败: %s", e)
+                _logger.warning("[Academic] 打开爱弥斯科研工作台失败: %s", e)
 
         QTimer.singleShot(0, _open)
 

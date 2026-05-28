@@ -273,7 +273,7 @@ class TrayIcon(QObject):
         cloud_music_action.triggered.connect(self._on_open_cloud_music)
         self._menu.addAction(cloud_music_action)
 
-        workbench_action = QAction('爱丽丝科研工作台', self._menu)
+        workbench_action = QAction('爱弥斯科研工作台', self._menu)
         workbench_action.setToolTip(TOOLTIPS['tray_workbench'])
         workbench_action.setStatusTip(TOOLTIPS['tray_workbench'])
         workbench_action.triggered.connect(self._on_open_workbench)
@@ -507,14 +507,14 @@ class TrayIcon(QObject):
             }))
 
     def _on_open_workbench(self):
-        """在浏览器打开爱丽丝科研工作台（本机 resc/workbench 静态页）。"""
+        """在浏览器打开爱弥斯科研工作台（本机 resc/workbench 静态页）。"""
         try:
             from lib.script.workbench_host import open_workbench_in_browser
 
             local = open_workbench_in_browser()
             if local:
                 self._event_center.publish(Event(EventType.INFORMATION, {
-                    'text': '已在浏览器打开爱丽丝科研工作台',
+                    'text': '已在浏览器打开爱弥斯科研工作台',
                     'min': 0,
                     'max': 60,
                 }))

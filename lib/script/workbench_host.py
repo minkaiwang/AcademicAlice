@@ -1,4 +1,4 @@
-"""爱丽丝科研工作台：本机 127.0.0.1 静态服务 + 默认浏览器（便于与 PyQt 桌宠同包分发）。
+"""爱弥斯科研工作台：本机 127.0.0.1 静态服务 + 默认浏览器（便于与 PyQt 桌宠同包分发）。
 
 静态页默认路径：`resc/workbench/research_workbench.html`（兼容旧名 `phd_workbench.html`；
 上游博士工作台单页思路来自 AugustUp/phd_master_system，MIT）。上游 readme 致谢摘录见
@@ -71,7 +71,7 @@ def _ensure_local_server_url() -> Optional[str]:
         try:
             srv = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
         except OSError as e:
-            _logger.warning("爱丽丝科研工作台本机服务无法绑定: %s", e)
+            _logger.warning("爱弥斯科研工作台本机服务无法绑定: %s", e)
             return None
 
         port = srv.server_address[1]
@@ -80,13 +80,13 @@ def _ensure_local_server_url() -> Optional[str]:
         th.start()
         _server = srv
         _server_url = url
-        _logger.info("爱丽丝科研工作台本机页: %s", url)
+        _logger.info("爱弥斯科研工作台本机页: %s", url)
         return url
 
 
 def open_workbench_in_browser() -> bool:
     """
-    在系统默认浏览器中打开爱丽丝科研工作台。
+    在系统默认浏览器中打开爱弥斯科研工作台。
 
     Returns:
         True  已打开本机托管的 HTML；

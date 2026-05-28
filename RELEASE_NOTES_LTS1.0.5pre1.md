@@ -1,4 +1,4 @@
-# 学术爱丽丝 LTS1.0.5pre1
+# 爱弥斯 LTS1.0.5pre1
 
 ## 来源与致谢（请先读）
 
@@ -13,10 +13,10 @@
 
 ## 本版要点
 
-- 产品名 **学术爱丽丝**：桌宠 + 浏览器内爱丽丝科研工作台（`resc/workbench/`）
+- 产品名 **爱弥斯**：桌宠 + 浏览器内爱弥斯科研工作台（`resc/workbench/`）
 - 默认 **主桌宠置顶**、**自动漫游**（可在控制面板调整）
 - 托盘 **云音乐（音响搜索）**；命令 `#音响 1` 召唤音响后右键打开搜索
-- 安装与打包脚本集中在 **`install/`**；Windows 绿色包见 `install/打包Windows.bat` → `dist/AcademicAlice/`
+- 安装与打包脚本集中在 **`install/`**；Windows 绿色包见 `install/打包Windows.bat` → `dist/AemeathDeskPet/`
 
 完整变更见 [CHANGELOG.md](CHANGELOG.md)。
 
@@ -27,7 +27,7 @@
 | 附件 | 适用对象 |
 |------|----------|
 | `FlyingSnowVelvet-LTS1.0.5pre1.zip` | 开发者 / 自带 Python：解压后运行 `安装依赖.bat` → `启动程序.bat` |
-| `AcademicAlice` 文件夹（若另附） | 终端用户：解压整文件夹后运行 `AcademicAlice.exe`，**无需安装 Python** |
+| `AemeathDeskPet` 文件夹（若另附） | 终端用户：解压整文件夹后运行 `AemeathDeskPet.exe`，**无需安装 Python** |
 
 文档门户：解压后打开 **`AA使用必读.html`**。
 

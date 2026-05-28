@@ -1,4 +1,4 @@
-"""学术爱丽丝「聊天记录」只读窗口：分页、可拖动、可清空；与 StreamMemory / 控制面板置顶策略一致。"""
+"""爱弥斯「聊天记录」只读窗口：分页、可拖动、可清空；与 StreamMemory / 控制面板置顶策略一致。"""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from lib.script.chat.memory import get_stream_memory
 
 _logger = get_logger(__name__)
 
-_dialog_singleton: Optional["AliceChatHistoryDialog"] = None
+_dialog_singleton: Optional["AemeathChatHistoryDialog"] = None
 
 _PAGE_SIZE = 80
 
@@ -49,7 +49,7 @@ def _format_entry(item: dict[str, str]) -> str:
     if role == "user":
         who = "你"
     elif role in ("you", "assistant"):
-        who = "爱丽丝"
+        who = "爱弥斯"
     else:
         who = role or "记录"
     head = ""
@@ -64,7 +64,7 @@ class _DragTitleLabel(QLabel):
     def __init__(self, host: QWidget, text: str) -> None:
         super().__init__(text)
         self._host = host
-        self.setObjectName("aliceHistoryTitle")
+        self.setObjectName("aemeathHistoryTitle")
         self.setCursor(Qt.SizeAllCursor)
         self._drag_origin: Optional[QPoint] = None
 
@@ -83,7 +83,7 @@ class _DragTitleLabel(QLabel):
         super().mouseReleaseEvent(event)
 
 
-class AliceChatHistoryDialog(QDialog):
+class AemeathChatHistoryDialog(QDialog):
     """只读聊天记录：分页浏览、标题栏拖动、清空本地 memory。"""
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
@@ -91,7 +91,7 @@ class AliceChatHistoryDialog(QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground, False)
         self.setModal(False)
         self.setFont(get_ui_font())
-        self.setWindowTitle("聊天记录 · 学术爱丽丝")
+        self.setWindowTitle("聊天记录 · 爱弥斯")
         self._event_center = get_event_center()
 
         pink = _hex(COLORS["pink"])
@@ -102,11 +102,11 @@ class AliceChatHistoryDialog(QDialog):
 
         self.setStyleSheet(
             f"""
-            AliceChatHistoryDialog {{
+            AemeathChatHistoryDialog {{
                 background: {shell};
                 border: 2px solid {black};
             }}
-            QLabel#aliceHistoryTitle {{
+            QLabel#aemeathHistoryTitle {{
                 background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
                     stop:0 {pink}, stop:1 {hi});
                 color: {black};
@@ -143,11 +143,11 @@ class AliceChatHistoryDialog(QDialog):
         root.setContentsMargins(scale_px(6, min_abs=4), scale_px(6, min_abs=4), scale_px(6, min_abs=4), scale_px(6, min_abs=4))
         root.setSpacing(scale_px(8, min_abs=6))
 
-        self._title = _DragTitleLabel(self, "聊天记录 · 学术爱丽丝（拖动标题栏移动窗口）")
+        self._title = _DragTitleLabel(self, "聊天记录 · 爱弥斯（拖动标题栏移动窗口）")
         root.addWidget(self._title)
 
         hint = QLabel(
-            "在下方命令行输入可与爱丽丝对话，回复以桌旁气泡为主；本窗口按页浏览本地 memory。"
+            "在下方命令行输入可与爱弥斯对话，回复以桌旁气泡为主；本窗口按页浏览本地 memory。"
         )
         hint.setWordWrap(True)
         hint.setStyleSheet(
@@ -283,7 +283,7 @@ class AliceChatHistoryDialog(QDialog):
         r = QMessageBox.question(
             self,
             "清除聊天记录",
-            "将清空本地已保存的与爱丽丝的对话记录（不可撤销）。确定吗？",
+            "将清空本地已保存的与爱弥斯的对话记录（不可撤销）。确定吗？",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No,
         )
@@ -365,7 +365,7 @@ class AliceChatHistoryDialog(QDialog):
         super().closeEvent(event)
 
 
-def open_alice_chat_history_dialog(parent: Optional[QWidget] = None) -> None:
+def open_aemeath_chat_history_dialog(parent: Optional[QWidget] = None) -> None:
     """显示或前置聊天记录窗口。"""
     global _dialog_singleton
     if _dialog_singleton is not None:
@@ -378,7 +378,7 @@ def open_alice_chat_history_dialog(parent: Optional[QWidget] = None) -> None:
         except RuntimeError:
             _dialog_singleton = None
     if _dialog_singleton is None:
-        _dialog_singleton = AliceChatHistoryDialog(parent)
+        _dialog_singleton = AemeathChatHistoryDialog(parent)
         _dialog_singleton.show()
     _dialog_singleton.raise_()
     _dialog_singleton.activateWindow()
