@@ -72,7 +72,8 @@
 - 本仓库 **代码与资源基线** 可溯源至原「飞行雪绒 / FlyingSnowVelvet-Aemeath」类项目；**素材与上游名称的权属** 以 `LICENSE-ASSETS` 为准。
 - **「学术爱丽丝」** 为本分支采用的 **产品显示名与人设名**，用于界面与文档；**不等于** 自动获得上游商标或全部美术资源的再授权。
 - 贡献名单、声线说明等处保留的 **「爱弥斯」** 等字样，视为 **原作资源署名**，与当前产品人设名区分使用。
-- **科研工作台** 参考 [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（MIT，博士工作台原仓库）。原维护者在 readme 中对小红书来源、鸣谢用户及「学习交流 / 非盈利 / Issue 删库」等表述，见根目录 **`README.md`** 与 **`resc/workbench/README.txt`** 中的**摘录**；完整与最新版本以该 GitHub 仓库为准。
+- **上游原作者社交平台（致谢，非本分支维护者）**：桌宠基线核心开发者 **Mark42 的铁镐**（哔哩哔哩 <https://space.bilibili.com/486401719>）；工作台原维护者 **[AugustUp](https://github.com/AugustUp)** / [phd_master_system](https://github.com/AugustUp/phd_master_system)，以及上游 readme 鸣谢的小红书来源 **不是黑子是癫子**（`61709040774`）、**橘子汽水**（`romantic_Ksir`）。完整表格见 **`README.md`「上游作者与社交平台致谢」**。
+- **科研工作台** readme 中对来源链、鸣谢及「学习交流 / 非盈利 / Issue 删库」等表述，见 **`README.md`** 与 **`resc/workbench/README.txt`** 中的**摘录**；完整与最新版本以该 GitHub 仓库为准。
 
 ---
 

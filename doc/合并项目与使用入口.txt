@@ -2,7 +2,25 @@
 学术爱丽丝 — 合并项目说明与使用入口（与 README / PROGRESS 同步维护）
 ================================================================================
 
-【本分支维护者（合并与文档）】
+【上游原作者与社交平台（致谢，非本分支维护者）】
+
+1) 桌宠与 AI 基线 ·「飞行雪绒 / FlyingSnowVelvet-Aemeath」
+   - 原项目核心开发者：Mark42 的铁镐
+   - 哔哩哔哩：https://space.bilibili.com/486401719
+   - 其他贡献者见 doc/贡献名单和主播的狗盆/开发贡献.txt
+
+2) 科研工作台 ·「博士工作台 / phd_master_system」
+   - 原仓库维护者 AugustUp：https://github.com/AugustUp
+   - 原仓库：https://github.com/AugustUp/phd_master_system （MIT）
+   - 上游 readme 鸣谢的小红书来源（源码/思路参考）：
+     · 不是黑子是癫子 — 小红书号 61709040774
+       https://www.xiaohongshu.com/user/profile/61709040774
+     · 橘子汽水 — 小红书号 romantic_Ksir
+       https://www.xiaohongshu.com/user/profile/romantic_Ksir
+
+完整表格与 readme 摘录见根目录 README.md「上游作者与社交平台致谢」与 ACKNOWLEDGMENTS.md。
+
+【本分支维护者（合并与文档，非上表原作者）】
 
 - 哔哩哔哩：昵称「靓点迷人」，站内标识 bili_2719061712，个人空间 https://space.bilibili.com/2719061712
   （若 MID 与账号不一致，请维护者更正链接）。

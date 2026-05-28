@@ -321,9 +321,20 @@ def _generate_portal() -> str:
                 <a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener">AugustUp/phd_master_system</a>（MIT），本仓已做 Tailwind 本地化、主题与宿主衔接等改造，<strong>不等同于</strong>对该上游仓库的完整镜像。
                 论文、项目、任务等数据以浏览器内 <strong>科研工作台</strong> 为主（多存于本机页面存储）；应用侧学术库路径见 <code>PROGRESS.md</code>、<code>resc/workbench/README.txt</code>。
             </p>
-            <h3 class="merged-h3">博士工作台 · 上游仓库</h3>
+            <h3 class="merged-h3">桌宠基线 · 上游原作者（非本分支维护者）</h3>
             <p class="section-desc" style="margin-top:0.35rem;">
-                原仓库：<a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener noreferrer">AugustUp/phd_master_system</a>（MIT）。
+                「飞行雪绒 / FlyingSnowVelvet-Aemeath」系开源桌宠。原项目<strong>核心开发者</strong>：
+                Mark42 的铁镐 — 哔哩哔哩
+                <a href="https://space.bilibili.com/486401719" target="_blank" rel="noopener noreferrer">space.bilibili.com/486401719</a>。
+                其他贡献者见下方「贡献列表」卡片中的 <code>开发贡献*.txt</code> 原文。
+            </p>
+            <h3 class="merged-h3">博士工作台 · 上游原作者与鸣谢来源</h3>
+            <p class="section-desc" style="margin-top:0.35rem;">
+                原仓库维护者 <a href="https://github.com/AugustUp" target="_blank" rel="noopener noreferrer">AugustUp</a> ·
+                <a href="https://github.com/AugustUp/phd_master_system" target="_blank" rel="noopener noreferrer">phd_master_system</a>（MIT）。
+                上游 readme 鸣谢的小红书来源（源码/思路参考）：
+                <a href="https://www.xiaohongshu.com/user/profile/61709040774" target="_blank" rel="noopener noreferrer">不是黑子是癫子</a>（号 <code>61709040774</code>）、
+                <a href="https://www.xiaohongshu.com/user/profile/romantic_Ksir" target="_blank" rel="noopener noreferrer">橘子汽水</a>（号 <code>romantic_Ksir</code>）。
                 下列文字为该仓库 readme 的<strong>摘录</strong>，著作权与立场归原维护者；若与 GitHub 最新 readme 不一致，以原仓库为准。
             </p>
             <blockquote class="upstream-quote">

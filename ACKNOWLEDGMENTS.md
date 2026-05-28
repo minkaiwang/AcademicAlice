@@ -18,6 +18,14 @@
 | **贡献记录** | `doc/贡献名单和主播的狗盆/开发贡献*.txt`（含 Mark42 的铁镐 等社区贡献者） |
 | **GitHub（历史/上游参考）** | 以 `config/version_info.py` 中 `GITHUB_REPO` 及你 fork 的上游为准 |
 
+**原项目核心开发者（社交平台）**
+
+| 称呼 | 平台 | 主页 |
+|------|------|------|
+| Mark42 的铁镐 | 哔哩哔哩 | <https://space.bilibili.com/486401719> |
+
+更多贡献者（动画、语音、素材等）见上表「贡献记录」路径中的具名名单与链接。
+
 **向该基线的原创者与贡献者致谢**：没有原项目的模块化架构与社区素材，就不会有本分支的桌宠能力。
 
 ---
@@ -32,7 +40,15 @@
 | **本仓实现** | `resc/workbench/research_workbench.html`（及 Tailwind bundle、主题与 PyQt 宿主 `workbench_host.py` 等） |
 | **关系** | **改编与嵌入，非** 对上游应用的完整镜像；坚果云等部分能力可能未随包提供，见 `resc/workbench/README.txt` |
 
-**向上游维护者及 readme 中致谢的小红书来源链致谢**（摘录见根目录 `README.md`「博士工作台 · 上游仓库说明」与 `resc/workbench/README.txt`）。著作权与「学习交流 / 非盈利」等立场 **归原维护者**。
+**原仓库维护者与 readme 鸣谢来源（社交平台）**
+
+| 角色 | 称呼 | 平台 | 主页 / 账号 |
+|------|------|------|-------------|
+| 原仓库维护者 | AugustUp | GitHub | 个人 <https://github.com/AugustUp> · 仓库 <https://github.com/AugustUp/phd_master_system> |
+| 上游 readme 鸣谢 · 源码/思路来源 | 不是黑子是癫子 | 小红书 | 号 `61709040774` · <https://www.xiaohongshu.com/user/profile/61709040774> |
+| 上游 readme 鸣谢 · 源码/思路来源 | 橘子汽水 | 小红书 | 号 `romantic_Ksir` · <https://www.xiaohongshu.com/user/profile/romantic_Ksir> |
+
+**向上游维护者及 readme 中致谢的小红书来源链致谢**（原文摘录见根目录 `README.md`「上游作者与社交平台致谢」与 `resc/workbench/README.txt`）。著作权与「学习交流 / 非盈利」等立场 **归原维护者**。
 
 ---
 
