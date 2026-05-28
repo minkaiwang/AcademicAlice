@@ -7,7 +7,8 @@
 1. **桌宠 / AI 基线** — 飞行雪绒 / FlyingSnowVelvet-Aemeath 系（`LICENSE-CODE` + `LICENSE-ASSETS`）
 2. **科研工作台** — [AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)（MIT）
 
-详见仓库 **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)** 与 [README.md](README.md)。
+详见仓库 **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)** 与 [README.md](README.md)。  
+仓库地址：<https://github.com/minkaiwang/AemeathDeskPet>
 
 ---
 

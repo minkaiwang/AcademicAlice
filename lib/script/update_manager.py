@@ -27,11 +27,11 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _STATE_PATH = _PROJECT_ROOT / "resc" / "user" / "update_state.json"
 _API_HEADERS = {
     "Accept": "application/vnd.github+json",
-    "User-Agent": "FlyingSnowVelvet-Updater/1.0",
+    "User-Agent": "AemeathDeskPet-Updater/1.0",
 }
 _ASSET_HEADERS = {
     "Accept": "application/octet-stream",
-    "User-Agent": "FlyingSnowVelvet-Updater/1.0",
+    "User-Agent": "AemeathDeskPet-Updater/1.0",
 }
 _PROTECTED_ROOTS = ("logs", "resc/user", "resc/models")
 _PROTECTED_FILES = ("py.ini",)

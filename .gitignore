@@ -21,6 +21,7 @@ build/
 dist/
 *.egg-info/
 *.spec
+!install/deskpet.spec
 
 # Logs and runtime state
 logs/

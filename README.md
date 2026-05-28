@@ -75,7 +75,7 @@
 
 ## 下载与安装（终端用户）
 
-发布包与历史下载入口以项目主页 / Release 为准（若 README 中外链变更，以仓库最新说明为准）。
+发布包与历史下载入口：**[Releases](https://github.com/minkaiwang/AemeathDeskPet/releases)**（若外链变更，以仓库最新说明为准）。
 
 1. 下载 Windows 压缩包或安装包。  
 2. 解压后 **勿只拷贝单个 exe**：保持目录内资源完整。  
@@ -85,6 +85,13 @@
 ---
 
 ## 开发者克隆本仓库
+
+**GitHub：** <https://github.com/minkaiwang/AemeathDeskPet>
+
+```bash
+git clone https://github.com/minkaiwang/AemeathDeskPet.git
+cd AemeathDeskPet
+```
 
 ```text
 # 建议使用 Python 3.10+，依赖见 install/ 目录说明
@@ -133,7 +140,7 @@ python install/install_deps.py
 
 **Upstream credit (not the fork maintainer):** (1) Desk-pet baseline — **Mark42 的铁镐**, Bilibili [486401719](https://space.bilibili.com/486401719), FlyingSnowVelvet-Aemeath lineage; (2) Workbench — **[AugustUp](https://github.com/AugustUp)** / [phd_master_system](https://github.com/AugustUp/phd_master_system) (MIT), plus Xiaohongshu sources cited in upstream readme: **不是黑子是癫子** (`61709040774`), **橘子汽水** (`romantic_Ksir`). Full tables: Chinese section **「上游作者与社交平台致谢」** and [`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md).
 
-**Fork integrator (docs):** Bilibili 「靓点迷人」 / [2719061712](https://space.bilibili.com/2719061712); Xiaohongshu 「皮鼓很痒」 / `533497202`. Tray link: `app_brand.py`. Portal: **`AA使用必读.html`**.
+**Repository:** <https://github.com/minkaiwang/AemeathDeskPet> · **Fork integrator (docs):** Bilibili 「靓点迷人」 / [2719061712](https://space.bilibili.com/2719061712); Xiaohongshu 「皮鼓很痒」 / `533497202`. Tray link: `app_brand.py`. Portal: **`AA使用必读.html`**.
 
 ---
 

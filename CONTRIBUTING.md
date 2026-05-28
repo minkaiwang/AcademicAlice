@@ -2,6 +2,8 @@
 
 感谢你愿意为 **爱弥斯**（学术桌面助手，基于原飞行雪绒 LTS 代码）提供帮助！本仓库目前仍在 LTS1.0.5 beta 迁移期，代码改动需要兼顾运行时稳定性与文档同步。请遵循以下约定：
 
+仓库：<https://github.com/minkaiwang/AemeathDeskPet>
+
 > 许可说明：所有源码贡献将以 [Apache License 2.0](LICENSE-CODE) 授权，并自动附带相应的专利许可。`resc/` 等资源文件受 [LICENSE-ASSETS](LICENSE-ASSETS) 约束，如需替换/新增素材，请确认你拥有其分发权或已获授权。
 
 ## 1. 基础要求

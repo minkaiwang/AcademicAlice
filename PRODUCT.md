@@ -96,7 +96,7 @@
 
 - **本分支维护者（对外署名，文档用）**：哔哩哔哩用户「靓点迷人」（站内标识 `bili_2719061712`，空间 <https://space.bilibili.com/2719061712>）；小红书用户「皮鼓很痒」（小红书号 `533497202`）。与上游/原作致谢名单无关；**应用内「关注作者」链接仍以 `app_brand.py` → `AUTHOR_BILIBILI_SPACE_URL` 为准**，若需与上述署名一致，请同步修改该常量。
 - 新增面向用户的字符串时，优先 **`from app_brand import APP_DISPLAY_NAME, APP_TAGLINE`**，避免硬编码「爱弥斯」四处漂移。
-- 若英文 README 仍以仓库原名为标题，可在首段用中文或英文加一行 **Fork 显示名：Aemeath / 爱弥斯**，与根目录 `README.md` 当前做法一致。
+- **GitHub 仓库：** <https://github.com/minkaiwang/AemeathDeskPet>（`config/version_info.py` → `GITHUB_REPO`）；对用户展示名仍为 **爱弥斯 / Aemeath**。
 - 功能路线图、技术挂点仍以 **`PROGRESS.md`** 为准；本文不重复里程碑细节。
 
 ---
