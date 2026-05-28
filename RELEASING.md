@@ -42,13 +42,23 @@ python scripts/package_release.py --version LTS1.0.5beta9
 
 ## 3. GitHub release
 
-1. 创建 Tag（例如 `git tag -a LTS1.0.5beta9 -m "LTS 1.0.5 beta 9"`，`git push origin LTS1.0.5beta9`）
-2. 新建 Release，标题建议与 Tag 一致
-3. Release Notes：复制 `CHANGELOG.md` 相应段落，并附加“已知问题 / 迁移阶段”
-4. 附件：
-   - `dist/FlyingSnowVelvet-LTS1.0.5beta9.zip`
+**仓库：** <https://github.com/minkaiwang/AemeathDeskPet>（`config/version_info.py` → `GITHUB_REPO = "minkaiwang/AemeathDeskPet"`）
+
+发布前运行品牌检查：
+
+```powershell
+python scripts/check_brand_strings.py
+python scripts/generate_doc_portal.py
+```
+
+1. 创建 Tag（例如 `git tag -a LTS1.0.5pre1 -m "爱弥斯 LTS1.0.5pre1"`，`git push origin LTS1.0.5pre1`）
+2. 新建 Release：**标题** 使用 **爱弥斯**（勿用旧名「学术爱丽丝」），与 `app_brand.py` 一致
+3. Release Notes：**全文复制** 根目录 [`RELEASE_NOTES_LTS1.0.5pre1.md`](RELEASE_NOTES_LTS1.0.5pre1.md)（或 `CHANGELOG.md` 对应段落），并核对绿色包名为 **`AemeathDeskPet`** / **`AemeathDeskPet.exe`**
+4. 若已发布的 `LTS1.0.5pre1` 仍为旧文案，在 GitHub → Releases → Edit 更新标题与正文（附件 zip 可保留）
+5. 附件：
+   - `dist/FlyingSnowVelvet-LTS1.0.5pre1.zip`（源码树）
+   - 可选：`dist/AemeathDeskPet/` 整夹 zip（PyInstaller 绿色包）
    - `AA使用必读.html`（方便在线查看文档）
-   - 可选：`logs/README.txt` 或示例配置
 
 ## 4. Post-release
 
