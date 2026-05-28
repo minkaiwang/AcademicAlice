@@ -86,7 +86,7 @@
 
 ## 开发者克隆本仓库
 
-**GitHub：** <https://github.com/minkaiwang/AemeathDeskPet>
+**GitHub：** [minkaiwang/AemeathDeskPet](https://github.com/minkaiwang/AemeathDeskPet)
 
 ```bash
 git clone https://github.com/minkaiwang/AemeathDeskPet.git
@@ -140,7 +140,7 @@ python install/install_deps.py
 
 **Upstream credit (not the fork maintainer):** (1) Desk-pet baseline — **Mark42 的铁镐**, Bilibili [486401719](https://space.bilibili.com/486401719), FlyingSnowVelvet-Aemeath lineage; (2) Workbench — **[AugustUp](https://github.com/AugustUp)** / [phd_master_system](https://github.com/AugustUp/phd_master_system) (MIT), plus Xiaohongshu sources cited in upstream readme: **不是黑子是癫子** (`61709040774`), **橘子汽水** (`romantic_Ksir`). Full tables: Chinese section **「上游作者与社交平台致谢」** and [`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md).
 
-**Repository:** <https://github.com/minkaiwang/AemeathDeskPet> · **Fork integrator (docs):** Bilibili 「靓点迷人」 / [2719061712](https://space.bilibili.com/2719061712); Xiaohongshu 「皮鼓很痒」 / `533497202`. Tray link: `app_brand.py`. Portal: **`AA使用必读.html`**.
+**Repository:** [minkaiwang/AemeathDeskPet](https://github.com/minkaiwang/AemeathDeskPet) · **Fork integrator (docs):** Bilibili 「靓点迷人」 / [2719061712](https://space.bilibili.com/2719061712); Xiaohongshu 「皮鼓很痒」 / `533497202`. Tray link: `app_brand.py`. Portal: **`AA使用必读.html`**.
 
 ---
 
