@@ -77,4 +77,5 @@
 | `AemeathDeskPet-LTS1.0.5pre2.zip` + 同名 `.sha256` | 开发者 / 自带 Python |
 | `AemeathDeskPet-LTS1.0.5pre2-green.zip` + 同名 `.sha256` | 无需另装 Python 的终端用户 |
 
-源码分支可以先进入代码评审；许可未清关时不创建公开二进制 GitHub Release。
+源码分支可以先进入代码评审并创建不含手工附件的 GitHub 预发布；许可未清关时
+不上传公开 ZIP、EXE 或其他二进制发行包。
