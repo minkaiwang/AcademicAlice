@@ -15,8 +15,11 @@
   `runner.temp` 上下文，并非 pytest 或应用代码失败；
 - 将 `AEMEATH_SHARED_ROOT` 下移到 pytest 步骤的 `env`；该位置允许读取
   `runner.temp`，同时继续把测试数据隔离在 runner 临时目录；
-- 后续远程结果以 PR #1 的 GitHub Actions Checks 为准；许可清关前仍不创建
-  Tag 或公开二进制 Release。
+- 修复运行 `30207506852` 的 Python 3.11、3.12、3.13 三套矩阵全部通过，
+  包括编译、Ruff、81 项 pytest、依赖审计、品牌检查和发行清单干跑；
+- 按官方当前主版本将 `actions/checkout` 与 `actions/setup-python` 升级至 v7，
+  消除 Node.js 20 Action 运行时弃用警告；
+- 许可清关前仍不创建 Tag 或公开二进制 Release。
 
 ### REL-CANDIDATE-002：LTS1.0.5pre2 版本收口
 
