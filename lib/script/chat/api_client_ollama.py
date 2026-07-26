@@ -1,4 +1,4 @@
-"""Ollama API ?????"""
+"""Ollama API 请求实现。"""
 
 import json
 import re

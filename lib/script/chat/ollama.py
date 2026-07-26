@@ -1,4 +1,4 @@
-"""Ollama / OpenAI ?? API ???????"""
+"""Ollama / OpenAI 兼容 API 管理入口。"""
 
 import subprocess
 import threading
@@ -17,7 +17,7 @@ from .ollama_support import logger, OLLAMA_BASE_URL, _OllamaSignal
 
 
 class OllamaManager(_ApiClientMixin, OllamaBootstrapMixin, OllamaStateMixin, OllamaSessionMixin):
-    """Ollama / OpenAI ?? API ????????????"""
+    """统一管理 Ollama 与 OpenAI 兼容 API 的生命周期。"""
     def __init__(self):
         self._event_center = get_event_center()
 
@@ -82,7 +82,7 @@ _ollama_manager: OllamaManager | None = None
 
 
 def get_ollama_manager() -> OllamaManager:
-    """???? OllamaManager ???????"""
+    """获取 OllamaManager 单例。"""
     global _ollama_manager
     if _ollama_manager is None:
         _ollama_manager = OllamaManager()
@@ -90,7 +90,7 @@ def get_ollama_manager() -> OllamaManager:
 
 
 def cleanup_ollama_manager():
-    """???? OllamaManager ???"""
+    """清理 OllamaManager 单例。"""
     global _ollama_manager
     if _ollama_manager is not None:
         _ollama_manager.cleanup()

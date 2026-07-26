@@ -1,4 +1,4 @@
-"""UI ????????"""
+"""UI 主题与窗口配置。"""
 
 from __future__ import annotations
 

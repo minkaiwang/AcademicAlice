@@ -1,4 +1,4 @@
-"""ChatHandler ???????????"""
+"""ChatHandler 人设与记忆上下文逻辑。"""
 
 import os
 from datetime import datetime
@@ -128,4 +128,3 @@ class ChatHandlerPersonaMixin:
 
     def _get_recent_context_snapshot(self) -> list[dict[str, str]]:
         return [dict(item) for item in self._recent_context if item.get('content')]
-

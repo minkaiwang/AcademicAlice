@@ -102,7 +102,6 @@ class AutoChatButton(QWidget):
         btn_x = self._launch_wuwa_button.x()
         btn_y = self._launch_wuwa_button.y()
         btn_w = self._launch_wuwa_button.width()
-        btn_h = self._launch_wuwa_button.height()
 
         new_x = btn_x + btn_w
         new_y = btn_y

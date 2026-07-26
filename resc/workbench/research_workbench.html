@@ -7,8 +7,8 @@
   <!-- 样式使用本地 tailwind.bundle.css，避免 cdn.tailwindcss.com 的生产环境告警与对 CDN 的强依赖；更新 HTML 后请重建 CSS（见 resc/workbench/README.txt） -->
   <link rel="stylesheet" href="./tailwind.bundle.css" />
   <link rel="icon" href="data:," />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="./vendor/chart.js/chart.umd.js"></script>
+  <link rel="stylesheet" href="./vendor/fontawesome/css/all.min.css">
   <style>
     html { font-size: clamp(14px, 0.35vw + 13px, 16px); }
     /* 粉彩主题令牌（由 JS 写入 document.documentElement.style；首屏默认爱弥斯粉） */
@@ -1783,16 +1783,16 @@
                 </div>
                 <div class="text-xs text-calm-mute">同步提供方：坚果云 WebDAV</div>
                 <div id="syncPolicyHint" class="text-xs text-calm-mute">修改后约 5 秒同步，失败时自动降频。</div>
-                <div data-provider-panel="jianguoyun" class="space-y-2">
-                  <input id="jianguoyunServerUrl" type="url" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" value="https://dav.jianguoyun.com/dav/" placeholder="WebDAV 地址">
-                  <input id="jianguoyunUsername" type="text" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" placeholder="坚果云账号">
-                  <input id="jianguoyunPassword" type="password" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" placeholder="第三方应用密码">
+                <form data-provider-panel="jianguoyun" class="space-y-2" onsubmit="return false;">
+                  <input id="jianguoyunServerUrl" type="url" autocomplete="url" aria-label="坚果云 WebDAV 地址" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" value="https://dav.jianguoyun.com/dav/" placeholder="WebDAV 地址">
+                  <input id="jianguoyunUsername" type="text" autocomplete="username" aria-label="坚果云账号" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" placeholder="坚果云账号">
+                  <input id="jianguoyunPassword" type="password" autocomplete="current-password" aria-label="坚果云第三方应用密码" class="w-full px-3 py-3 rounded-2xl border border-calm-line bg-white" placeholder="第三方应用密码">
                   <div class="grid grid-cols-2 gap-2">
-                    <button id="btnJianguoyunTest" class="px-4 py-3 rounded-2xl bg-dopamine-mint text-white font-black">验证连接</button>
-                    <button id="btnJianguoyunSave" class="px-4 py-3 rounded-2xl bg-white border border-calm-line font-semibold">保存配置</button>
+                    <button id="btnJianguoyunTest" type="button" class="px-4 py-3 rounded-2xl bg-dopamine-mint text-white font-black">验证连接</button>
+                    <button id="btnJianguoyunSave" type="button" class="px-4 py-3 rounded-2xl bg-white border border-calm-line font-semibold">保存配置</button>
                   </div>
-                  <button id="btnJianguoyunDisconnect" class="w-full px-4 py-3 rounded-2xl bg-white border border-calm-line font-semibold">断开坚果云</button>
-                </div>
+                  <button id="btnJianguoyunDisconnect" type="button" class="w-full px-4 py-3 rounded-2xl bg-white border border-calm-line font-semibold">断开坚果云</button>
+                </form>
                 <div class="grid grid-cols-1 gap-2">
                   <button id="btnCloudSyncNow" class="w-full px-4 py-3 rounded-2xl bg-dopamine-orange text-white font-black">立即同步</button>
                   <button id="btnCloudUpload" class="w-full px-4 py-3 rounded-2xl bg-white border border-calm-line font-semibold">仅上传本地到云端</button>
@@ -1874,6 +1874,8 @@
   <script>
     const STORAGE_KEY = 'phd_master_workspace_merged_v1';
     const STORAGE_FILE_NAME = 'workspace-data.json';
+    const HOST_STATE_API = '/api/workbench/state';
+    const HOST_REQUEST_HEADER = 'X-Aemeath-Workbench';
     const SUBMISSION_COLUMNS = ['选题中','写作中','待投稿','已投稿','审稿中','返修中','已接收','已见刊/已收录','搁置/拒稿'];
     const STAGE_COLORS = {
       '选题中':'#9B5DE5','写作中':'#FF8C42','待投稿':'#4D9DE0','已投稿':'#43AA8B','审稿中':'#3b82f6','返修中':'#f97316','已接收':'#10b981','已见刊/已收录':'#059669','搁置/拒稿':'#9ca3af'
@@ -1991,13 +1993,17 @@
       { id: 'pastel-warm', name: '蜂蜜抹茶', primary: '#DBA979', secondary: '#ECCA9C', accent: '#E8EFCF', bg: '#AFD198', ink: '#3d3628' },
     ];
     const storageMeta = {
-      backend: '浏览器本地缓存',
+      backend: '正在检测本机存储',
       filePath: '',
-      syncState: '仅本地缓存',
+      syncState: '正在连接本机存储',
       lastSavedAt: '',
       lastLoadedAt: ''
     };
     let persistStateTimer = null;
+    let persistStateResolvers = [];
+    let hostStorageAvailable = false;
+    let storageHydrationComplete = false;
+    let deferredHostStateRaw = '';
     let currentSection = 'home-section';
     let focusInterval = null;
     let attendanceMoodPending = null;
@@ -3078,42 +3084,88 @@
         alert('保存失败：本机存储可能已满。请到「数据 · 备份」导出 JSON 备份后，尝试清空部分数据或清理浏览器站点存储。');
       }
     }
+    async function requestHostState(method='GET', payload=null, requestOptions={}) {
+      const endpoint = requestOptions.forceBackup ? `${HOST_STATE_API}?force_backup=1` : HOST_STATE_API;
+      const fetchOptions = {
+        method,
+        cache: 'no-store',
+        credentials: 'omit',
+        headers: { [HOST_REQUEST_HEADER]: '1' }
+      };
+      if (payload !== null) {
+        fetchOptions.headers['Content-Type'] = 'application/json';
+        fetchOptions.body = JSON.stringify(payload);
+      }
+      const response = await fetch(endpoint, fetchOptions);
+      let result = {};
+      try {
+        result = await response.json();
+      } catch (parseErr) {
+        throw new Error(`本机存储响应无效（HTTP ${response.status}）`);
+      }
+      if (!response.ok || result?.ok === false) {
+        throw new Error(result?.error || `本机存储请求失败（HTTP ${response.status}）`);
+      }
+      return result;
+    }
     function queueJsonFilePersist(raw = serializeState()) {
-      if (!isTauriRuntime()) return Promise.resolve(null);
-      storageMeta.backend = '桌面 JSON 文件';
+      if (!isTauriRuntime() && !hostStorageAvailable) {
+        deferredHostStateRaw = raw;
+        return Promise.resolve(null);
+      }
+      storageMeta.backend = isTauriRuntime() ? '桌面 JSON 文件' : '爱弥斯本机 JSON 文件';
       storageMeta.syncState = '正在同步 JSON';
       if (persistStateTimer) clearTimeout(persistStateTimer);
       return new Promise((resolve) => {
+        persistStateResolvers.push(resolve);
         persistStateTimer = setTimeout(async () => {
           try {
-            const result = await invokeTauri('write_state_json', { payload: raw });
-            storageMeta.backend = '桌面 JSON 文件';
+            const result = isTauriRuntime()
+              ? await invokeTauri('write_state_json', { payload: raw })
+              : await requestHostState('PUT', JSON.parse(raw));
+            storageMeta.backend = isTauriRuntime() ? '桌面 JSON 文件' : '爱弥斯本机 JSON 文件';
             storageMeta.filePath = result?.path || storageMeta.filePath;
             storageMeta.syncState = '已同步到 JSON';
             storageMeta.lastSavedAt = nowDateTime();
+            deferredHostStateRaw = '';
           } catch (err) {
             console.error(err);
-            storageMeta.syncState = 'JSON 写入失败，已保留本地缓存';
+            storageMeta.syncState = 'JSON 写入失败，已保留浏览器缓存';
           } finally {
             persistStateTimer = null;
             if (currentSection === 'settings-section') refreshSettings();
-            resolve();
+            const resolvers = persistStateResolvers.splice(0);
+            resolvers.forEach(done => done());
           }
         }, 120);
       });
     }
     async function hydrateStateFromJson() {
-      if (!isTauriRuntime()) {
-        storageMeta.backend = '浏览器本地缓存';
-        storageMeta.syncState = '当前为浏览器缓存模式';
-        if (currentSection === 'settings-section') refreshSettings();
-        return;
-      }
       try {
-        const result = await invokeTauri('read_state_json');
-        storageMeta.backend = '桌面 JSON 文件';
+        const tauriRuntime = isTauriRuntime();
+        const result = tauriRuntime
+          ? await invokeTauri('read_state_json')
+          : await requestHostState('GET');
+        hostStorageAvailable = !tauriRuntime;
+        storageMeta.backend = tauriRuntime ? '桌面 JSON 文件' : '爱弥斯本机 JSON 文件';
         storageMeta.filePath = result?.path || storageMeta.filePath;
-        if (result?.exists && result?.content) {
+        const recoverLegacy = !tauriRuntime && new URLSearchParams(window.location.search).get('recover_legacy') === '1';
+        if (recoverLegacy) {
+          const legacyRaw = localStorage.getItem(STORAGE_KEY);
+          if (!legacyRaw) {
+            storageMeta.syncState = '此历史端口没有可恢复的工作台数据';
+            alert('此端口未找到旧工作台数据。请关闭本页，换一个历史端口重试。');
+          } else {
+            const parsedLegacy = JSON.parse(legacyRaw);
+            const saved = await requestHostState('PUT', parsedLegacy, { forceBackup: true });
+            replaceState(buildStateFromParsed(parsedLegacy));
+            storageMeta.filePath = saved?.path || storageMeta.filePath;
+            storageMeta.syncState = '旧端口数据已恢复到稳定 JSON';
+            storageMeta.lastLoadedAt = nowDateTime();
+            renderAll();
+            alert('旧工作台数据已恢复到爱弥斯稳定 JSON 文件。现在可关闭本页并从桌宠正常打开工作台。');
+          }
+        } else if (tauriRuntime && result?.exists && result?.content) {
           let parsed;
           try {
             parsed = JSON.parse(result.content);
@@ -3128,6 +3180,17 @@
           storageMeta.lastLoadedAt = nowDateTime();
           persistStateToLocal(serializeState());
           renderAll();
+        } else if (!tauriRuntime && result?.exists && result?.state) {
+          if (deferredHostStateRaw) {
+            storageMeta.syncState = '正在保存页面启动后的新修改';
+            queueJsonFilePersist(deferredHostStateRaw);
+          } else {
+            replaceState(buildStateFromParsed(result.state));
+            storageMeta.syncState = result?.recovered_from ? '已从备份恢复并加载' : '已从 JSON 加载';
+            storageMeta.lastLoadedAt = nowDateTime();
+            persistStateToLocal(serializeState());
+            renderAll();
+          }
         } else {
           storageMeta.syncState = '已启用 JSON 存储';
           const raw = localStorage.getItem(STORAGE_KEY) || serializeState();
@@ -3136,15 +3199,23 @@
         }
       } catch (err) {
         console.error(err);
-        storageMeta.syncState = 'JSON 加载失败，继续使用本地缓存';
+        hostStorageAvailable = false;
+        storageMeta.backend = '浏览器本地缓存';
+        storageMeta.syncState = 'JSON 加载失败，继续使用浏览器缓存';
       } finally {
+        storageHydrationComplete = true;
         if (currentSection === 'settings-section') refreshSettings();
       }
     }
     async function clearJsonFileStorage() {
-      if (!isTauriRuntime()) return;
       try {
-        await invokeTauri('clear_state_json');
+        if (isTauriRuntime()) {
+          await invokeTauri('clear_state_json');
+        } else if (hostStorageAvailable) {
+          await requestHostState('DELETE');
+        } else {
+          return;
+        }
         storageMeta.syncState = '已删除 JSON 文件';
       } catch (err) {
         console.error(err);
@@ -3154,6 +3225,7 @@
     function saveState() {
       const raw = serializeState();
       persistStateToLocal(raw);
+      if (!storageHydrationComplete && !isTauriRuntime()) deferredHostStateRaw = raw;
       queueJsonFilePersist(raw);
       window.PhdWorkbenchSyncAdapter?.notifyLocalChange?.();
       if (currentSection === 'settings-section') refreshSettings();

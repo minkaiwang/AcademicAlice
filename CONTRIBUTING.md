@@ -8,7 +8,7 @@
 
 ## 1. 基础要求
 
-- 目标平台：Windows 10/11，Python 3.7–3.13（推荐 3.10+）。
+- 目标平台：Windows 10/11，Python 3.11–3.13；CI 对三个版本逐一验证。
 - 所有提交必须保持 UTF-8 / ASCII 源码（除非原文件已有其它编码）。
 - 任何新增/修改模块都需要对应的清理逻辑（事件 `unsubscribe`、任务回收、资源释放）。
 - 避免引入未记录的第三方依赖；如确有需要，请同时更新 `install/requirements.txt` 与 `install/install_deps.py::DEPENDENCIES`。
@@ -17,16 +17,19 @@
 ## 2. 开发环境
 
 ```powershell
-py -3 -m venv .venv
+py -3.13 -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
+python -m pytest
 python -m compileall config lib install/install_deps.py scripts
+python -m ruff check --select E9,F63,F7,F82,F841 config lib install scripts tests
 ```
 
-- 桌宠入口：`python/we pythonw lib/core/qt_desktop_pet.py`；
+- 桌宠入口：`pythonw lib/core/qt_desktop_pet.py`（调试时用 `python`）；
 - 文档门户：`python scripts/generate_doc_portal.py`；
-- 打包检查：`python scripts/package_release.py --dry-run`。
+- 打包检查：提交后在干净工作树运行 `python scripts/package_release.py --dry-run`；仅本地核对未提交文件时使用 `--allow-dirty`。
 
 ## 3. 代码规范
 
@@ -41,7 +44,8 @@ python -m compileall config lib install/install_deps.py scripts
 在提交 PR 之前请完成：
 
 - `python -m compileall config lib install/install_deps.py scripts`
-- `python scripts/package_release.py --dry-run`（确认清单输出）
+- `python -m ruff check --select E9,F63,F7,F82,F841 config lib install scripts tests`
+- `python scripts/package_release.py --dry-run` 与 `python scripts/package_green_release.py --dry-run`（干净工作树，确认关键文件与清单）
 - 手动运行桌宠一次，确认启动、命令框、音乐、AI、语音核心路径不回归
 - 若修改了 `doc/`、贡献名单（`开发贡献*.txt`）或 `scripts/generate_doc_portal.py`，请重新执行 `python scripts/generate_doc_portal.py`
 

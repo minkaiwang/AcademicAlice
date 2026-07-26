@@ -120,7 +120,7 @@ class ScaleUpButton(QWidget):
             self._update_position()
 
     def _on_ui_create(self, event):
-        """UI ?????? - ???????"""
+        """响应 UI 锚点查询。"""
         target_ui_id = event.data.get('ui_id')
         request_anchor_id = event.data.get('anchor_id')
 
@@ -368,7 +368,7 @@ class ScaleDownButton(QWidget):
             self._update_position()
 
     def _on_ui_create(self, event):
-        """UI ?????? - ???????"""
+        """响应 UI 锚点查询。"""
         target_ui_id = event.data.get('ui_id')
         request_anchor_id = event.data.get('anchor_id')
 

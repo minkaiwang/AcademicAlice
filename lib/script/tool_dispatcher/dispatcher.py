@@ -31,9 +31,11 @@ import re
 import random
 import threading
 import webbrowser
+import ipaddress
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlsplit, urlunsplit
 
 from PyQt5.QtCore import QTimer
 
@@ -82,7 +84,7 @@ _MEMORY_LINE_NO_TOPIC_PATTERN = re.compile(
     r'^\[(?P<ts>[^\]]+)\]\[(?P<role>user|you):\](?P<content>.*)$',
     re.IGNORECASE,
 )
-_URL_SCHEME_PATTERN = re.compile(r'^[a-zA-Z][a-zA-Z0-9+\-.]*://')
+_MAX_BROWSER_URL_LENGTH = 2048
 
 
 def _parse_timer_seconds(arg: str) -> int:
@@ -207,16 +209,50 @@ def _normalize_tool_text(text: str) -> str:
 
 def _normalize_url_arg(raw: str) -> str:
     text = str(raw or '').strip()
-    if not text:
+    if (
+        not text
+        or len(text) > _MAX_BROWSER_URL_LENGTH
+        or any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in text)
+        or "\\" in text
+    ):
         return ""
-    text = text.strip().replace(' ', '')
+
     if text.startswith('www.'):
         text = f'https://{text}'
     elif text.startswith('//'):
         text = f'https:{text}'
-    elif not _URL_SCHEME_PATTERN.match(text):
+    elif '://' not in text:
         text = f'https://{text}'
-    return text
+
+    try:
+        parsed = urlsplit(text)
+        scheme = parsed.scheme.lower()
+        hostname = parsed.hostname
+        # Accessing .port performs strict numeric/range validation.
+        parsed.port
+    except (TypeError, ValueError):
+        return ""
+
+    if scheme not in {'http', 'https'} or not hostname:
+        return ""
+    if parsed.username is not None or parsed.password is not None:
+        return ""
+
+    host = hostname.rstrip('.').lower()
+    if not host or '%' in host or host == 'localhost' or host.endswith('.local'):
+        return ""
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        # Single-label and numeric-only host names are commonly local or
+        # ambiguous browser aliases. Require a regular DNS-style name.
+        if '.' not in host or host.replace('.', '').isdigit():
+            return ""
+    else:
+        if not ip.is_global:
+            return ""
+
+    return urlunsplit((scheme, parsed.netloc, parsed.path, parsed.query, parsed.fragment))
 
 
 def _parse_tool_candidate(raw_cmd: str, raw_arg: str = '') -> tuple[str, str] | None:

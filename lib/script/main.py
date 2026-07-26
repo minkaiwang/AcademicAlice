@@ -1,6 +1,7 @@
 """主程序入口模块 - 使用动态发现机制初始化模块"""
 import sys
 import os
+import threading
 
 from PyQt5.QtCore import QTimer
 
@@ -30,6 +31,7 @@ from lib.core.plugin_registry import (
 )
 from lib.core.tray_icon import get_tray_icon, cleanup_tray_icon
 from lib.script.ui.shutdown import hide_all_runtime_ui, cleanup_all_runtime_ui
+from lib.script.workbench_host import cleanup_workbench_host
 from lib.script.app.single_instance import (
     acquire_single_instance_lock as _new_acquire_single_instance_lock,
     notify_already_running as _new_notify_already_running,
@@ -67,7 +69,10 @@ class ApplicationState:
         self._exit_in_progress = False
         self._exit_completed = False
         self._components_cleaned = False
+        self._visuals_cleaned = False
         self._logger_cleaned = False
+        self._force_exit_cancel = threading.Event()
+        self._force_exit_timer = None
         self._exit_code = 0
         self._shutdown_steps = []
         self._shutdown_step_index = 0
@@ -178,7 +183,7 @@ class ApplicationState:
         self.request_exit(0)
 
     def _on_app_quit(self, event: Event):
-        """缁熶竴鎺ョ APP_QUIT锛岄伩鍏嶇洿鎺ュ己閫€ Qt 浜嬩欢寰幆銆?"""
+        """统一接管 APP_QUIT，避免直接强退 Qt 事件循环。"""
         event.mark_handled()
         self.request_exit(int((event.data or {}).get('exit_code', 0)))
 
@@ -276,8 +281,11 @@ class ApplicationState:
         self._shutdown_steps = [
             ('cleanup_runtime_services', self._shutdown_cleanup_runtime_services, 30),
             ('play_exit_animation', self._shutdown_play_exit_animation, 80),
-            ('force_quit_application', self._shutdown_force_quit_application, 0),
+            ('stop_primary_windows', self._shutdown_stop_primary_windows, 30),
+            ('cleanup_visual_components', self._shutdown_cleanup_visual_components, 30),
+            ('quit_application', self._shutdown_quit_application, 0),
         ]
+        self._arm_force_exit_watchdog()
         self._shutdown_step_index = 0
         QTimer.singleShot(0, self._run_next_shutdown_step)
 
@@ -355,9 +363,27 @@ class ApplicationState:
             self._app.quit()
         self._exit_completed = True
 
-    def _shutdown_force_quit_application(self):
-        self._exit_completed = True
-        os._exit(int(self._exit_code))
+    def _arm_force_exit_watchdog(self, timeout_seconds: float = 10.0):
+        """仅当正常 Qt 退出链在时限内没有结束时，才强制终止进程。"""
+        if self._force_exit_timer is not None:
+            return
+
+        def force_exit_if_stuck():
+            if self._force_exit_cancel.wait(timeout_seconds):
+                return
+            logger.critical(
+                '正常退出超过 %.1f 秒，执行最终强制终止兜底',
+                timeout_seconds,
+            )
+            os._exit(int(self._exit_code))
+
+        timer = threading.Thread(
+            target=force_exit_if_stuck,
+            daemon=True,
+            name='aemeath-exit-watchdog',
+        )
+        self._force_exit_timer = timer
+        timer.start()
 
     def _perform_component_cleanup(self, skip_visual_cleanup: bool = False):
         if self._components_cleaned:
@@ -383,6 +409,7 @@ class ApplicationState:
         cleanup_yuanbao_free_api_service()
         cleanup_microphone_push_to_talk_manager()
         cleanup_microphone_stt_service()
+        cleanup_workbench_host()
 
         self._components_cleaned = True
 
@@ -390,6 +417,8 @@ class ApplicationState:
             self._cleanup_visual_components()
 
     def _cleanup_visual_components(self):
+        if self._visuals_cleaned:
+            return
         from lib.core.draw_core import cleanup_draw_core
         from lib.core.voice.core import cleanup_voice_core
 
@@ -412,6 +441,7 @@ class ApplicationState:
             self._particles = None
 
         cleanup_draw_core()
+        self._visuals_cleaned = True
 
     def finalize_after_event_loop(self, exit_code: int) -> int:
         final_exit_code = self._exit_code if self._exit_requested else exit_code
@@ -425,6 +455,8 @@ class ApplicationState:
         if not self._components_cleaned:
             logger.warning('Qt 事件循环已经结束，但组件仍未完全清理，开始兜底收尾')
             self._perform_component_cleanup()
+        elif not self._visuals_cleaned:
+            self._cleanup_visual_components()
 
         cleanup_start_exit_animation()
         cleanup_event_center()
@@ -435,6 +467,7 @@ class ApplicationState:
         if not self._logger_cleaned:
             cleanup_app_logger()
             self._logger_cleaned = True
+        self._force_exit_cancel.set()
 
         return final_exit_code
 
@@ -460,14 +493,14 @@ def main():
         exit_code = app_state.finalize_after_event_loop(exit_code)
 
         sys.exit(exit_code)
-    except Exception as e:
+    except Exception:
         import traceback
         logger.error('程序运行出错:\n%s', traceback.format_exc())
 
         # 即使出错也要发布退出事件
         app_state.request_exit(-1)
-        app_state.finalize_after_event_loop(-1)
-        input('按回车键退出...')
+        exit_code = app_state.finalize_after_event_loop(-1)
+        sys.exit(exit_code)
     finally:
         _new_release_single_instance_lock()
 

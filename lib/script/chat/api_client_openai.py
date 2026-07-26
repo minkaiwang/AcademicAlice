@@ -1,4 +1,4 @@
-"""OpenAI ?? API ?????"""
+"""OpenAI 兼容 API 请求实现。"""
 
 import json
 import threading
@@ -150,7 +150,7 @@ class _ApiClientOpenAIMixin(_ApiClientCommonMixin, _ApiClientErrorMixin):
 
     @staticmethod
     def _should_include_yuanbao_context(options: dict | None) -> bool:
-        """???????????????/???????????"""
+        """判断元宝请求是否应携带人设与历史上下文。"""
         opts = options or {}
         return bool(opts.get('should_remove_conversation', False))
 
@@ -173,7 +173,7 @@ class _ApiClientOpenAIMixin(_ApiClientCommonMixin, _ApiClientErrorMixin):
             svc = get_yuanbao_free_api_service()
             status = svc.get_service_status()
         except Exception as exc:
-            logger.debug('[APIClient] YuanBao ???????: %s', exc)
+            logger.debug('[APIClient] 获取 YuanBao 服务状态失败: %s', exc)
             return None
         if not isinstance(status, dict):
             return None
@@ -656,7 +656,7 @@ class _ApiClientOpenAIMixin(_ApiClientCommonMixin, _ApiClientErrorMixin):
                 effective_persona = ''
             if not include_history:
                 effective_history = None
-            logger.debug('[APIClient] YuanBao ?????: include_persona=%s include_history=%s remove_conversation=%s',
+            logger.debug('[APIClient] YuanBao 上下文策略: include_persona=%s include_history=%s remove_conversation=%s',
                          include_persona, include_history, bool(yuanbao_options.get('should_remove_conversation', False)))
         if images and use_yuanbao_free_api and bool(yuanbao_options.get('upload_images', True)):
             try:

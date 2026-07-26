@@ -1,4 +1,4 @@
-"""Ollama ???????? Qt ?????"""
+"""Ollama 公共常量、日志与 Qt 信号。"""
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -10,6 +10,7 @@ logger = get_logger(__name__)
 OLLAMA_BASE_URL = OLLAMA.get('base_url', 'http://localhost:11434')
 PING_INTERVAL_MS = OLLAMA.get('ping_interval_ms', 5000)
 PULL_EMIT_INTERVAL = OLLAMA.get('pull_emit_interval', 2.0)
+PULL_READ_TIMEOUT = max(30.0, float(OLLAMA.get('pull_read_timeout', 900.0)))
 API_RATE_LIMIT_WINDOW_SECS = 60
 API_RATE_LIMIT_MAX_REQUESTS = 10
 

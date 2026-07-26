@@ -88,8 +88,8 @@ class MusicService:
                 self._persist_provider_config(normalized)
             return True
 
-        # netease / qq / kugou 鍏辩敤鍚屼竴涓?cloudmusic backend锛屽垏鎹㈠钩鍙颁笉閿€姣佸悗绔紝
-        # 浠ヤ繚鐣欏悇骞冲彴宸叉仮澶嶇殑鐧诲綍浼氳瘽锛岄伩鍏嶉绻佸垏鎹㈠悗閲嶅鐧诲綍銆?
+        # netease / qq / kugou 共用同一个 cloudmusic backend，切换平台不销毁后端，
+        # 以保留各平台已恢复的登录会话，避免频繁切换后重复登录。
         old_provider = self._provider_name
         should_keep_backend = {old_provider, normalized}.issubset({"netease", "qq", "kugou"})
         if not should_keep_backend:
@@ -166,7 +166,7 @@ class MusicService:
         return _PROVIDER_LABELS.get(normalized, normalized.upper() or "UNKNOWN")
 
     def format_track_display(self, track: MusicTrack, *, include_provider: bool | None = None) -> str:
-        title = str(track.title or "鏈煡姝屾洸").strip() or "鏈煡姝屾洸"
+        title = str(track.title or "未知歌曲").strip() or "未知歌曲"
         artist = str(track.artist or "").strip()
         display = str(track.display or "").strip()
         if not display:

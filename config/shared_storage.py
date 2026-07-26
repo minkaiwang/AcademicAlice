@@ -1,7 +1,9 @@
-"""Shared config storage helpers.
+r"""Shared config storage helpers.
 
 目标：
-1) 启动时优先读取 `C:\AemeathDeskPet\config` 中的配置。
+1) 启动时优先读取当前共享数据根下的 `config`；已存在的旧版
+   `{SystemDrive}\AemeathDeskPet` 会继续沿用，新安装默认使用
+   `%LOCALAPPDATA%\AemeathDeskPet`。
 2) 若外部目录不存在，则自动创建并复制项目内 `config` 目录。
 3) 外部配置缺少新键时，按当前版本模板自动补齐（不覆盖已有值）。
 4) 配置变更时支持镜像写入外部目录，便于跨版本复用。
@@ -38,7 +40,6 @@ _BOOTSTRAPPED = False
 _MANAGED_PY_FILES: dict[str, tuple[str, ...]] = {
     'config.py': (),
     'ollama_config.py': (
-        'API_KEY',
         'FORCE_REPLY_MODE',
         'API_BASE_URL',
         'API_MODEL',
@@ -48,7 +49,7 @@ _MANAGED_PY_FILES: dict[str, tuple[str, ...]] = {
 }
 
 def ensure_shared_config_ready() -> None:
-    """确保外部共享配置目录就绪，并完成“外部优先 + 缺键修复”同步。"""
+    """确保用户共享配置目录就绪，并完成“外部优先 + 缺键修复”同步。"""
     global _BOOTSTRAPPED
     with _BOOTSTRAP_LOCK:
         if _BOOTSTRAPPED:

@@ -1,4 +1,4 @@
-"""Ollama ?????????????"""
+"""Ollama 会话、模型拉取与请求逻辑。"""
 
 import json
 import threading
@@ -12,6 +12,7 @@ from .ollama_support import (
     logger,
     OLLAMA_BASE_URL,
     PULL_EMIT_INTERVAL,
+    PULL_READ_TIMEOUT,
     API_RATE_LIMIT_WINDOW_SECS,
     API_RATE_LIMIT_MAX_REQUESTS,
 )
@@ -42,7 +43,7 @@ class OllamaSessionMixin:
                 f"{OLLAMA_BASE_URL}/api/pull",
                 json={"model": model_name, "stream": True},
                 stream=True,
-                timeout=(10, None),
+                timeout=(10, PULL_READ_TIMEOUT),
             )
             resp.raise_for_status()
 

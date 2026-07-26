@@ -351,7 +351,7 @@ class CommandDialog(QWidget):
                 self._event_center.publish(pause_event)
 
     def _on_ui_create(self, event):
-        """?? UI ??????????? UI ???????"""
+        """处理 UI 锚点查询，并响应当前窗口的位置。"""
         window_id = event.data.get('window_id')
         anchor_id = event.data.get('anchor_id')
         ui_id = event.data.get('ui_id')

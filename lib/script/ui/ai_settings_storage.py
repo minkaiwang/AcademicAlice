@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 
 from config.shared_storage import ensure_shared_config_ready, get_shared_config_path
+from config.secure_secrets import clear_ai_secrets, save_ai_secrets
 from lib.core.logger import get_logger
 
 _logger = get_logger(__name__)
@@ -49,7 +50,11 @@ def save_ai_values(values: dict, default_values: dict) -> None:
     text = cfg_path.read_text(encoding="utf-8")
     memory_context_limit_value = values.get("memory_context_limit", default_values["memory_context_limit"])
 
-    text = _replace_assignment(text, "API_KEY", _py_literal(values["api_key"]))
+    secret_values = {
+        "api_key": str(values["api_key"] or "").strip(),
+        "yuanbao_x_uskey": str(values["yuanbao_x_uskey"] or "").strip(),
+    }
+    text = _replace_assignment(text, "API_KEY", _py_literal(""))
     text = _replace_assignment(text, "FORCE_REPLY_MODE", _py_literal(values["force_reply_mode"]))
     text = _replace_assignment(text, "API_BASE_URL", _py_literal(values["api_base_url"]))
     text = _replace_assignment(text, "API_MODEL", _py_literal(values["api_model"]))
@@ -58,7 +63,7 @@ def save_ai_values(values: dict, default_values: dict) -> None:
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "login_url", _py_literal(values["yuanbao_login_url"]))
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "hy_source", _py_literal(values["yuanbao_hy_source"]))
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "hy_user", _py_literal(values["yuanbao_hy_user"]))
-    text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "x_uskey", _py_literal(values["yuanbao_x_uskey"]))
+    text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "x_uskey", _py_literal(""))
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "agent_id", _py_literal(values["yuanbao_agent_id"]))
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "chat_id", _py_literal(values["yuanbao_chat_id"]))
     text = _replace_named_dict_item(text, "YUANBAO_FREE_API", "should_remove_conversation", _py_literal(values["yuanbao_remove_conversation"]))
@@ -77,6 +82,10 @@ def save_ai_values(values: dict, default_values: dict) -> None:
     text = _replace_dict_item(text, "num_thread", _py_literal(values["num_thread"]))
 
     _write_text_atomic(cfg_path, text)
+    if any(secret_values.values()):
+        save_ai_secrets(secret_values)
+    else:
+        clear_ai_secrets()
     _mirror_config_text_to_shared("ollama_config.py", text)
 
 

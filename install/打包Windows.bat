@@ -48,9 +48,16 @@ exit /b 1
 echo [INFO] Using Python: !PY_EXE!
 echo.
 
-"!PY_EXE!" -m pip install "pyinstaller>=6" -q
+"!PY_EXE!" -m pip install "pyinstaller==6.21.0" -q
 if errorlevel 1 (
   echo [ERROR] pip install pyinstaller failed.
+  pause
+  exit /b 1
+)
+
+"!PY_EXE!" "%CD%\\scripts\\check_build_environment.py"
+if errorlevel 1 (
+  echo [ERROR] Build environment is incomplete. Install runtime and dev requirements first.
   pause
   exit /b 1
 )

@@ -1,16 +1,18 @@
 """渲染管理器 - 统一管理所有渲染任务"""
-from PyQt5.QtGui import QPainter, QPixmap
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtGui import QPainter
+from PyQt5.QtCore import QRect
 from typing import Dict, Optional
+
+from lib.core.render.base import Renderer
 
 
 class RenderManager:
     """渲染管理器，统一处理所有渲染逻辑"""
 
     def __init__(self):
-        self._renderers: Dict[str, 'Renderer'] = {}
+        self._renderers: Dict[str, Renderer] = {}
 
-    def register(self, name: str, renderer: 'Renderer'):
+    def register(self, name: str, renderer: Renderer):
         """注册渲染器"""
         self._renderers[name] = renderer
 
@@ -19,7 +21,7 @@ class RenderManager:
         if name in self._renderers:
             del self._renderers[name]
 
-    def get(self, name: str) -> Optional['Renderer']:
+    def get(self, name: str) -> Optional[Renderer]:
         """获取渲染器"""
         return self._renderers.get(name)
 

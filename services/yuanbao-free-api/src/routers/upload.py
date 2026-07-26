@@ -32,12 +32,18 @@ async def upload_file(
     try:
         upload_info = await get_upload_info(request.file.file_name, headers)
         logger.info("Upload info retrieved successfully")
-        logger.debug(f"upload_info: {upload_info}")
 
         file_info = await upload_file_to_cos(request.file, upload_info)
         logger.info("File uploaded successfully")
-        logger.debug(f"File uploaded successfully: {file_info}")
         return file_info
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in upload_file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(
+            "Unexpected upload failure: %s",
+            type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="internal service error",
+        ) from None

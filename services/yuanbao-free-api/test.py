@@ -27,7 +27,12 @@ try:
         },
     }
     headers = {"Authorization": f"Bearer {api_key}"}
-    response = requests.post(upload_url, json=data, headers=headers)
+    response = requests.post(
+        upload_url,
+        json=data,
+        headers=headers,
+        timeout=(5, 30),
+    )
     if response.status_code == 200:
         print("File uploaded successfully:", response.json())
         multimedia = [response.json()]

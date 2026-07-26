@@ -443,11 +443,11 @@ class PlaylistPanel(QWidget):
     # ==================================================================
 
     def _refresh_size(self) -> None:
-        """??????????????? 1 ??????? _WIDTH?"""
+        """按当前页行数更新高度，至少保留一行并保持固定宽度。"""
         items  = self._page_items()
         n_rows = max(1, len(items))
         if self._has_pages():
-            n_rows += 1   # ??????
+            n_rows += 1   # 分页控制行
         self.setFixedSize(_WIDTH, _BORDER * 2 + n_rows * _ROW_H)
 
     def _refresh_view_state(
@@ -514,7 +514,7 @@ class PlaylistPanel(QWidget):
         return -1
 
     def _move_selected(self, direction: int) -> None:
-        """?????????????-1 ?? / +1 ????"""
+        """移动选中的队列项；-1 上移，+1 下移。"""
         if not self._queue:
             return
 
@@ -528,10 +528,10 @@ class PlaylistPanel(QWidget):
         if not (0 <= dst < len(self._queue)):
             return
 
-        # ?????????????????????????
+        # 正在播放的曲目位置由播放器维护，当前不允许直接移动。
         if src == self._current_index or dst == self._current_index:
             self._event_center.publish(Event(EventType.INFORMATION, {
-                'text': '??????????????',
+                'text': '正在播放的歌曲暂不能移动',
                 'min': 0,
                 'max': 60,
             }))
@@ -647,7 +647,7 @@ class PlaylistPanel(QWidget):
         self._play_now_btn.show_btn()
 
     def _remove_selected_song(self) -> None:
-        """???????????????????????????"""
+        """移除选中歌曲，并同步更新播放索引与界面。"""
         idx = self._selected_abs_index()
         if not (0 <= idx < len(self._queue)):
             self._update_remove_button_position()
@@ -805,7 +805,7 @@ class PlaylistPanel(QWidget):
         self._update_position()
 
     def _on_music_status(self, event: Event) -> None:
-        """????????????????/???????????"""
+        """播放状态变化时刷新队列内容与选中状态。"""
         if not self._visible:
             return
         self._refresh_view_state(
@@ -815,7 +815,7 @@ class PlaylistPanel(QWidget):
         )
     
     def _on_song_end(self, event: Event) -> None:
-        """??????????????"""
+        """歌曲结束后刷新播放队列。"""
         if not self._visible:
             return
         self._refresh_view_state(

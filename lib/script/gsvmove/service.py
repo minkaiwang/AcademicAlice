@@ -1,7 +1,7 @@
 """GSVmove TTS service bridge.
 
 职责：
-- APP_PRE_START 阶段后台隐藏拉起 `C:\\AemeathDeskPet\\start_gsvmove.bat`
+- APP_PRE_START 阶段从用户共享数据根后台隐藏拉起 `start_gsvmove.bat`
 - 监听 `AI_VOICE_REQUEST` 中的文本 TTS 请求
 - 调用本地 GSVmove HTTP API 生成音频，并回灌为 `SOUND_REQUEST`
 """
@@ -184,6 +184,7 @@ class GsvmoveService:
 
         self._ec.subscribe(EventType.APP_PRE_START, self._on_app_pre_start)
         self._ec.subscribe(EventType.AI_VOICE_REQUEST, self._on_ai_voice_request)
+        self._prestart_thread: threading.Thread | None = None
         self._worker = threading.Thread(target=self._worker_loop, daemon=True, name="gsvmove-worker")
         self._worker.start()
         logger.info("[GsvmoveService] 已初始化")
@@ -283,13 +284,23 @@ class GsvmoveService:
 
     def kickoff_prestart(self) -> None:
         with self._prestart_lock:
-            if self._prestart_started:
+            if self._prestart_started or self._worker_stop.is_set():
                 return
             self._prestart_started = True
-        threading.Thread(target=self._prestart_worker, daemon=True, name="gsvmove-prestart").start()
+            thread = threading.Thread(
+                target=self._prestart_worker,
+                daemon=True,
+                name="gsvmove-prestart",
+            )
+            self._prestart_thread = thread
+            thread.start()
 
     def _prestart_worker(self) -> None:
+        if self._worker_stop.is_set():
+            return
         if not self._ensure_service_ready():
+            return
+        if self._worker_stop.is_set():
             return
         self._warmup_service_once()
 
@@ -331,6 +342,8 @@ class GsvmoveService:
                 logger.warning('[GsvmoveService] GSV 预热失败: %s', e)
 
     def _on_ai_voice_request(self, event: Event):
+        if self._worker_stop.is_set():
+            return
         data = event.data or {}
         text = str(data.get("text") or "").strip()
         if not text:
@@ -386,12 +399,15 @@ class GsvmoveService:
             return False
 
     def _ensure_service_ready(self) -> bool:
+        if self._worker_stop.is_set():
+            return False
         if self._health_check():
             return True
 
-        self._start_service_process()
+        if not self._start_service_process():
+            return False
         deadline = time.monotonic() + _STARTUP_WAIT_SECS
-        while time.monotonic() < deadline:
+        while time.monotonic() < deadline and not self._worker_stop.is_set():
             if self._health_check():
                 logger.info("[GsvmoveService] GSVmove 服务已就绪")
                 return True
@@ -403,6 +419,7 @@ class GsvmoveService:
                     with self._proc_lock:
                         if self._process is proc:
                             self._process = None
+                            self._started_by_app = False
                     log_tail = self._read_launcher_log_tail()
                     if log_tail:
                         logger.error(
@@ -414,16 +431,22 @@ class GsvmoveService:
                         logger.error("[GsvmoveService] GSVmove 启动器提前退出 exit_code=%s", exit_code)
                     return False
             time.sleep(_HEALTH_POLL_INTERVAL)
+        self.shutdown_service_process()
+        if self._worker_stop.is_set():
+            logger.info("[GsvmoveService] GSVmove 启动已因应用退出而取消")
+            return False
         logger.warning("[GsvmoveService] GSVmove 服务启动超时")
         return False
 
-    def _start_service_process(self):
+    def _start_service_process(self) -> bool:
         with self._proc_lock:
+            if self._worker_stop.is_set():
+                return False
             if self._process is not None and self._process.poll() is None:
-                return
+                return True
             if not self._launcher_path.exists():
                 logger.warning("[GsvmoveService] 未找到启动脚本: %s", self._launcher_path)
-                return
+                return False
             launcher_log = None
             try:
                 launcher_log = self._launcher_log_path.open("ab")
@@ -442,10 +465,12 @@ class GsvmoveService:
                 )
                 self._started_by_app = True
                 logger.info("[GsvmoveService] 已在后台启动 GSVmove")
+                return True
             except Exception as e:
                 self._process = None
                 self._started_by_app = False
                 logger.error("[GsvmoveService] 启动 GSVmove 失败: %s", e)
+                return False
             finally:
                 if launcher_log is not None:
                     try:
@@ -534,19 +559,19 @@ class GsvmoveService:
         self._ec.unsubscribe(EventType.AI_VOICE_REQUEST, self._on_ai_voice_request)
         self._worker_stop.set()
         self._request_queue.put(None)
+
+        stopped = self.shutdown_service_process()
+        for thread in (self._prestart_thread, self._worker):
+            if thread is not None and thread is not threading.current_thread():
+                thread.join(timeout=3.0)
         try:
             self._session.close()
         except Exception:
             pass
 
-        with self._proc_lock:
-            proc = self._process
-            self._process = None
-            self._started_by_app = False
-
-        if self._shutdown_started_service(proc):
+        if stopped:
             return
-        logger.warning("[GsvmoveService] 结束 GSVmove 进程失败：常规终止与兜底清理均未成功")
+        logger.warning("[GsvmoveService] 结束由本应用启动的 GSVmove 进程失败")
 
     def shutdown_service_process(self) -> bool:
         with self._proc_lock:
@@ -557,32 +582,34 @@ class GsvmoveService:
         return stopped
 
     def _shutdown_started_service(self, proc: subprocess.Popen | None) -> bool:
-        if proc is not None and proc.poll() is None:
-            if self._terminate_process_tree(proc.pid, force=False):
+        if proc is None or proc.poll() is not None:
+            return True
+
+        if self._terminate_process_tree(proc, force=False):
+            try:
+                proc.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                pass
+            if proc.poll() is None and self._terminate_process_tree(proc, force=True):
+                try:
+                    proc.wait(timeout=2.0)
+                except subprocess.TimeoutExpired:
+                    pass
+            if proc.poll() is not None:
                 logger.info("[GsvmoveService] 已结束 GSVmove 后台进程")
-            elif self._terminate_process_tree(proc.pid, force=True):
-                logger.info("[GsvmoveService] 已强制结束 GSVmove 后台进程")
+                return True
 
-        fallback_pids = self._find_gsvmove_service_pids()
-        if proc is not None and getattr(proc, "pid", None):
-            fallback_pids.discard(int(proc.pid))
+        if proc.poll() is None and self._terminate_process_tree(proc, force=True):
+            try:
+                proc.wait(timeout=2.0)
+            except subprocess.TimeoutExpired:
+                pass
+        return proc.poll() is not None
 
-        for pid in sorted(fallback_pids):
-            if self._terminate_process_tree(pid, force=True):
-                logger.info("[GsvmoveService] 已强制结束残留 GSVmove 服务进程 pid=%s", pid)
-        if proc is not None or fallback_pids:
-            time.sleep(0.8)
-
-        proc_alive = bool(proc is not None and proc.poll() is None)
-        remaining_pids = self._find_gsvmove_service_pids()
-        if proc is not None and getattr(proc, "pid", None):
-            remaining_pids.discard(int(proc.pid))
-        return (not proc_alive) and (not remaining_pids)
-
-    def _terminate_process_tree(self, pid: int, force: bool) -> bool:
+    def _terminate_process_tree(self, proc: subprocess.Popen, force: bool) -> bool:
         try:
             if os.name == "nt":
-                cmd = ["taskkill", "/PID", str(pid), "/T"]
+                cmd = ["taskkill", "/PID", str(proc.pid), "/T"]
                 if force:
                     cmd.append("/F")
                 result = _subprocess_run_hidden(
@@ -593,32 +620,19 @@ class GsvmoveService:
                     check=False,
                 )
                 return result.returncode == 0
+            if force:
+                proc.kill()
+            else:
+                proc.terminate()
+            return True
         except Exception as e:
-            logger.debug("[GsvmoveService] taskkill 结束进程树失败 pid=%s force=%s err=%s", pid, force, e)
-        return False
-
-    def _find_gsvmove_service_pids(self) -> set[int]:
-        candidates: set[int] = set()
-        command = (
-            "Get-CimInstance Win32_Process | "
-            "Where-Object { $_.CommandLine -match 'GSVmove.+api\\.py' -and $_.CommandLine -match '--port\\s+9880' } | "
-            "Select-Object -ExpandProperty ProcessId"
-        )
-        try:
-            result = _subprocess_run_hidden(
-                ["powershell", "-NoProfile", "-Command", command],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                check=False,
+            logger.debug(
+                "[GsvmoveService] 结束自有进程树失败 pid=%s force=%s err=%s",
+                proc.pid,
+                force,
+                e,
             )
-            for line in (result.stdout or "").splitlines():
-                line = line.strip()
-                if line.isdigit():
-                    candidates.add(int(line))
-        except Exception as e:
-            logger.debug("[GsvmoveService] 枚举 GSVmove 进程失败: %s", e)
-        return candidates
+        return False
 
 
 _instance: GsvmoveService | None = None

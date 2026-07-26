@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 PENDING_SYNC_SUFFIX = '.pending'
@@ -27,7 +28,8 @@ def get_project_config_path(*parts: str) -> Path:
     return get_project_config_dir().joinpath(*parts)
 
 
-def get_shared_root_dir() -> Path:
+def _legacy_drive_root() -> Path:
+    """旧版共享目录；仅在已存在时沿用，避免普通用户首次写系统盘根目录。"""
     drive = str(os.environ.get('SystemDrive', 'C:') or 'C:').strip()
     if not drive:
         drive = 'C:'
@@ -35,6 +37,27 @@ def get_shared_root_dir() -> Path:
     if not drive.endswith(':'):
         drive = f'{drive}:'
     return Path(f'{drive}\\AemeathDeskPet')
+
+
+def _user_data_root() -> Path:
+    local_app_data = str(os.environ.get('LOCALAPPDATA', '') or '').strip()
+    if local_app_data:
+        return Path(local_app_data).expanduser() / 'AemeathDeskPet'
+    user_profile = str(os.environ.get('USERPROFILE', '') or '').strip()
+    if user_profile:
+        return Path(user_profile).expanduser() / 'AppData' / 'Local' / 'AemeathDeskPet'
+    return Path.home() / 'AppData' / 'Local' / 'AemeathDeskPet'
+
+
+@lru_cache(maxsize=1)
+def get_shared_root_dir() -> Path:
+    override = str(os.environ.get('AEMEATH_SHARED_ROOT', '') or '').strip()
+    if override:
+        return Path(override).expanduser().resolve()
+    legacy_root = _legacy_drive_root()
+    if legacy_root.exists():
+        return legacy_root
+    return _user_data_root()
 
 
 def get_shared_config_dir() -> Path:

@@ -64,8 +64,14 @@ def validate_ai_values(values: dict) -> None:
     if yuanbao_free_api_enabled:
         if not api_key:
             raise ValueError("启用 YuanBao-Free-API 时，接口密钥不能为空（此处填写本地服务访问密钥）")
+        if "," in api_key or any(ch.isspace() for ch in api_key):
+            raise ValueError("YuanBao-Free-API 接口密钥不能包含逗号或空白字符")
+        if not yuanbao_hy_source:
+            raise ValueError("启用 YuanBao-Free-API 时，hy_source 不能为空")
         if not yuanbao_agent_id:
             raise ValueError("启用 YuanBao-Free-API 时，agent_id 不能为空")
+        if yuanbao_hy_user and any(ch.isspace() for ch in yuanbao_hy_user):
+            raise ValueError("hy_user 不能包含空白字符")
         if yuanbao_x_uskey and any(ch.isspace() for ch in yuanbao_x_uskey):
             raise ValueError("x_uskey 不能包含空白字符")
         if yuanbao_chat_id and any(ch.isspace() for ch in yuanbao_chat_id):

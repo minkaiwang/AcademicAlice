@@ -4,7 +4,6 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import qrcode
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +73,10 @@ def extract_qr_region_from_image(image_path: str, output_path: str | None = None
     cropped: Optional[np.ndarray] = None
 
     try:
-        ok, decoded_info, points, _ = detector.detectAndDecodeMulti(img)
+        ok, _, points, _ = detector.detectAndDecodeMulti(img)
     except Exception as exc:
         logger.warning("QR multi-detect failed: %s", exc)
-        ok, decoded_info, points = False, (), None
+        ok, points = False, None
 
     if ok and points is not None and len(points):
         best_idx = 0
@@ -93,48 +92,16 @@ def extract_qr_region_from_image(image_path: str, output_path: str | None = None
             return _save_image(output_path, cropped)
 
     try:
-        data, points, _ = detector.detectAndDecode(img)
+        _, points, _ = detector.detectAndDecode(img)
     except Exception as exc:
         logger.warning("QR single-detect failed: %s", exc)
-        data, points = "", None
+        points = None
     if points is not None:
         cropped = _crop_points_region(img, points)
         if cropped is not None and output_path:
             return _save_image(output_path, cropped)
 
     return False
-
-
-def print_qr_to_terminal(image_path: str):
-    """Print QR code content to terminal if decodable."""
-    try:
-        qr_content = decode_qr_from_image(image_path)
-    except Exception as exc:
-        logger.warning("Print terminal QR failed: %s", exc)
-        qr_content = None
-
-    print("\n" + "=" * 50)
-    print("  Please scan the QR code below")
-    print("=" * 50)
-    print()
-
-    if qr_content:
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=2,
-            border=2,
-        )
-        qr.add_data(qr_content)
-        qr.make(fit=True)
-        qr.print_ascii(invert=True)
-
-        print()
-        print("=" * 50)
-        print(f"  QR content: {qr_content}")
-        print("=" * 50 + "\n")
-    else:
-        logger.warning("QR decode failed, skip terminal print")
 
 
 def decode_qr_from_image(image_path: str) -> Optional[str]:
