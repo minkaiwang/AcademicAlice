@@ -2,7 +2,8 @@
 
 职责：
 - 订阅 INPUT_CHAT / STREAM_FINAL 事件
-- 将用户输入与模型回复写入 resc/user/memory.txt
+- 将用户输入与模型回复写入用户共享数据目录
+- 首次运行时从旧版 resc/user/memory.txt 迁移，但不再向仓库目录镜像
 - 写入前移除 ###指令### 标记，并解析 ///主题///
 - 按“每行独立”落盘，格式：[YYYY-MM-DD HH:MM:SS][主题][user:]内容 / [YYYY-MM-DD HH:MM:SS][主题][you:]内容
 """
@@ -40,7 +41,6 @@ class StreamMemory:
         self._memory_file = Path(memory_file)
         self._legacy_memory_file = get_project_root() / "resc" / "user" / "memory.txt"
         self._memory_file.parent.mkdir(parents=True, exist_ok=True)
-        self._legacy_memory_file.parent.mkdir(parents=True, exist_ok=True)
         if not self._memory_file.exists() and self._legacy_memory_file.exists():
             try:
                 self._memory_file.write_text(self._legacy_memory_file.read_text(encoding="utf-8"), encoding="utf-8")
@@ -49,7 +49,7 @@ class StreamMemory:
 
         self._ec.subscribe(EventType.INPUT_CHAT, self._on_input_chat)
         self._ec.subscribe(EventType.STREAM_FINAL, self._on_stream_final)
-        logger.info("[StreamMemory] 已初始化: %s (legacy=%s)", self._memory_file, self._legacy_memory_file)
+        logger.info("[StreamMemory] 已初始化: %s", self._memory_file)
 
     @staticmethod
     def _extract_topic_and_lines(text: str) -> tuple[str, list[str]]:
@@ -95,10 +95,9 @@ class StreamMemory:
 
         try:
             with self._write_lock:
-                for target in (self._memory_file, self._legacy_memory_file):
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    with target.open("a", encoding="utf-8") as f:
-                        f.write(payload)
+                self._memory_file.parent.mkdir(parents=True, exist_ok=True)
+                with self._memory_file.open("a", encoding="utf-8") as f:
+                    f.write(payload)
         except OSError as e:
             logger.error("[StreamMemory] 写入失败: %s", e)
 
@@ -208,12 +207,13 @@ class StreamMemory:
         return total, all_items[start : start + ps]
 
     def clear_all_history(self) -> tuple[bool, str]:
-        """清空主路径与 legacy memory 文件。"""
+        """清空主路径；若旧版文件仍存在，也同步清空以免旧版本读到历史。"""
         try:
             with self._write_lock:
-                for target in (self._memory_file, self._legacy_memory_file):
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    target.write_text("", encoding="utf-8")
+                self._memory_file.parent.mkdir(parents=True, exist_ok=True)
+                self._memory_file.write_text("", encoding="utf-8")
+                if self._legacy_memory_file.exists():
+                    self._legacy_memory_file.write_text("", encoding="utf-8")
             return True, ""
         except OSError as e:
             return False, str(e)

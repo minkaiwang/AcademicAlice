@@ -2,6 +2,11 @@ from __future__ import annotations
 
 import os
 
+from config.secure_secrets import (
+    SecureStorageError,
+    migrate_legacy_config_secrets,
+)
+
 # Ollama / OpenAI 兼容 API 配置文件
 
 # ============================================================
@@ -25,10 +30,18 @@ def _load_env_api_key() -> tuple[str, str]:
 
 _ENV_API_KEY, _ENV_API_KEY_SOURCE = _load_env_api_key()
 
+try:
+    _SECURE_AI_SECRETS = migrate_legacy_config_secrets()
+except SecureStorageError:
+    _SECURE_AI_SECRETS = {
+        'api_key': '',
+        'yuanbao_x_uskey': '',
+    }
+
 # API Key 配置（优先使用）
 # 如果设置了有效的 API Key，将使用 OpenAI 兼容 API 而非本地 Ollama。
 # 默认保持为空，请优先通过环境变量或 AI 设置面板注入，避免把密钥提交到仓库。
-API_KEY = ''
+API_KEY = _SECURE_AI_SECRETS.get('api_key', '')
 
 # 回复模式强制开关（留空=默认检索顺序）
 # 0: 强制配置文件 API_KEY
@@ -59,7 +72,7 @@ YUANBAO_FREE_API = {
     'login_url': 'https://yuanbao.tencent.com/chat/naQivTmsDa',
     'hy_source': 'web',
     'hy_user': '',
-    'x_uskey': '',
+    'x_uskey': _SECURE_AI_SECRETS.get('yuanbao_x_uskey', ''),
     'agent_id': 'naQivTmsDa',
     'chat_id': '',
     'should_remove_conversation': False,
@@ -88,6 +101,7 @@ OLLAMA = {
     'api_enable_thinking': False,   # 外部 API 思考模式（Qwen3.5-plus 默认 True；关闭可提升可见流式与命令稳定性）
     'api_thinking_budget': 0,       # >0 时限制思考 token；0 表示不指定
     'pull_emit_interval':  2.0,     # 下载进度气泡更新间隔（秒）
+    'pull_read_timeout':   900.0,   # 模型下载连续无数据的超时（秒），避免后台线程永久挂起
     'request_timeout':     60,      # HTTP 请求超时（秒）
 }
 
@@ -103,7 +117,7 @@ OLLAMA_MODEL = 'qwen2.5:latest'
 # num_thread = 0 : 由 Ollama 自动决定（通常等于物理核心数）
 #            > 0 : 手动指定 CPU 线程数，推荐设为物理核心数
 OLLAMA_OPTIONS = {
-    'num_gpu': -1,       # 默认纯 CPU 模式，对低端/无独显设备最友好
+    'num_gpu': -1,       # 默认由 Ollama 自动分配 CPU/GPU
     'num_thread': 0,     # CPU 线程数，0 = 自动
 }
 
@@ -241,15 +255,10 @@ def get_active_config() -> dict:
         cfg['strict_mode'] = False
         return cfg
     # 默认检索顺序：
-    # 1) 元宝web（当选择“优先走元宝web”且配置完整时）
-    # 2) 配置文件 API_KEY
-    # 3) 环境变量 API Key
-    # 4) 本地 Ollama
-    # 5) 规则回复（由上层在 Ollama 不可用时触发）
-    if force_mode == '4' and _is_yuanbao_web_ready(preferred_api_key):
-        cfg = _build_openai_config(preferred_api_key, preferred_source, '')
-        cfg['strict_mode'] = False
-        return cfg
+    # 1) 配置文件 API_KEY
+    # 2) 环境变量 API Key
+    # 3) 本地 Ollama
+    # 4) 规则回复（由上层在 Ollama 不可用时触发）
     if config_api_key:
         return _build_openai_config(config_api_key, 'config_api', '')
     if env_api_key:

@@ -1,4 +1,4 @@
-"""?????????"""
+"""聊天请求编排入口。"""
 
 from collections import deque
 
@@ -127,7 +127,7 @@ _chat_handler: ChatHandler | None = None
 
 
 def get_chat_handler() -> ChatHandler:
-    """???? ChatHandler ???????"""
+    """获取 ChatHandler 单例。"""
     global _chat_handler
     if _chat_handler is None:
         _chat_handler = ChatHandler()
@@ -135,7 +135,7 @@ def get_chat_handler() -> ChatHandler:
 
 
 def cleanup_chat_handler():
-    """???? ChatHandler ???"""
+    """清理 ChatHandler 单例。"""
     global _chat_handler
     if _chat_handler is not None:
         _chat_handler.cleanup()

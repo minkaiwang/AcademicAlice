@@ -67,7 +67,7 @@ def _generate_portal() -> str:
     )
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    hero_subtitle = "桌宠 × 科研工作台合并版 · 贡献记录 · 文档 · LTS1.0.5pre1"
+    hero_subtitle = "桌宠 × 科研工作台合并版 · 贡献记录 · 文档 · LTS1.0.5pre2"
     harmony_font = "resc/FRONTS/HarmonyOS_Sans_SC_Bold.ttf"
     lahairoi_font = "resc/FRONTS/WuWa%20Lahai-Roi%20Regular.ttf"
 
@@ -76,7 +76,7 @@ def _generate_portal() -> str:
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>爱弥斯资料舱 · LTS1.0.5pre1</title>
+    <title>爱弥斯资料舱 · LTS1.0.5pre2</title>
     <style>
         @font-face {{
             font-family: 'HarmonyOS Sans';
@@ -367,7 +367,7 @@ def _generate_portal() -> str:
             </div>
         </section>
     </main>
-    <footer>由 <code>scripts/generate_doc_portal.py</code> 根据仓库内文本生成 · LTS1.0.5pre1 · 不含赞助或打赏展示区块</footer>
+    <footer>由 <code>scripts/generate_doc_portal.py</code> 根据仓库内文本生成 · LTS1.0.5pre2 · 不含赞助或打赏展示区块</footer>
     <script>
     (() => {{
         const letters = "FLYINGSNOWVELVET";

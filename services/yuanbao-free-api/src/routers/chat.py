@@ -52,6 +52,14 @@ async def chat_completions(
         generator = create_completion_stream(chat_request, headers, request.should_remove_conversation)
         logger.info(f"Streaming chat completion for chat_id: {request.chat_id}")
         return EventSourceResponse(generator, media_type="text/event-stream")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in chat_completions: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(
+            "Unexpected chat completion failure: %s",
+            type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="internal service error",
+        ) from None

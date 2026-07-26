@@ -34,9 +34,9 @@
 
 | 项 | 说明 |
 |----|------|
-| **性质** | 浏览器内单页：论文、项目、任务等学术进度管理（本机 `localStorage` 为主） |
+| **性质** | 浏览器内单页：论文、项目、任务等学术进度管理（稳定 JSON 为主、`localStorage` 为应急缓存） |
 | **上游仓库** | **[AugustUp/phd_master_system](https://github.com/AugustUp/phd_master_system)** |
-| **许可** | **MIT**（以该仓库 LICENSE 为准） |
+| **许可** | **MIT**（随包副本：`resc/workbench/LICENSE-UPSTREAM-MIT`；核验记录：同目录 `UPSTREAM.md`） |
 | **本仓实现** | `resc/workbench/research_workbench.html`（及 Tailwind bundle、主题与 PyQt 宿主 `workbench_host.py` 等） |
 | **关系** | **改编与嵌入，非** 对上游应用的完整镜像；坚果云等部分能力可能未随包提供，见 `resc/workbench/README.txt` |
 
@@ -64,7 +64,7 @@
 
 完整名单见 `doc/贡献名单和主播的狗盆/开发贡献.txt`，包括但不限于：
 
-- **chenwr727/yuanbao-free-api** — 元宝 OpenAI 兼容本地中转（`services/bundles/`）
+- **chenwr727/yuanbao-free-api** — 元宝 OpenAI 兼容本地中转（`services/yuanbao-free-api/`；上游 README 声明 MIT 但缺少独立许可证文本，正式发布前需确认）
 - **jsososo/QQMusicApi**、**listen1/listen1_chrome_extension** — QQ 音乐相关参考与适配
 - 启动/关闭动画、语音模型、字体素材等 — 见贡献文件中的具名贡献者
 
@@ -74,6 +74,7 @@
 
 - 本文件 **`ACKNOWLEDGMENTS.md`**
 - **`LICENSE-CODE`**、**`LICENSE-ASSETS`**
+- **`THIRD_PARTY_NOTICES.md`** 与其中列出的随包许可证
 - **`README.md`**（含上游摘录与 English summary）
 - 可选：**`AA使用必读.html`**（由 `python scripts/generate_doc_portal.py` 生成）
 

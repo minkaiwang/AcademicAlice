@@ -1,4 +1,4 @@
-"""API client ???????"""
+"""API 客户端错误解析辅助。"""
 
 import json
 from typing import Any

@@ -16,24 +16,27 @@
 """
 
 import configparser
+import hashlib
 import os
 import re
 import shutil
 import socket
+import stat
 import subprocess
 import sys
 import time
 import urllib.error
 import urllib.request
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Optional
+from urllib.parse import urlparse
 
 # 本脚本位于 install/，仓库根为其上一级（与 py.ini、lib、resc 同级）
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# 最低支持 Python 版本
-MIN_VERSION = (3, 7, 0)
+# 已由 CI 覆盖的最低支持 Python 版本
+MIN_VERSION = (3, 11, 0)
 # 超过该版本后, 仍可用, 但优先级降低(兼容性考虑)
 MAX_PREFERRED_VERSION = (3, 13, 999)
 
@@ -61,7 +64,6 @@ DEPENDENCIES = [
     ("pydantic-settings", "settings loader for YuanBao relay", ("pydantic_settings",)),
     ("pygame", "audio playback", ("pygame",)),
     ("requests", "HTTP client", ("requests",)),
-    ("musicdl", "Kugou fallback parser", ("musicdl",)),
     ("pyncm", "NetEase Cloud Music API", ("pyncm",)),
     ("qrcode", "QR code generation for music login", ("qrcode",)),
     ("sse-starlette", "SSE streaming for YuanBao relay", ("sse_starlette",)),
@@ -74,14 +76,15 @@ DEPENDENCIES = [
     ("vosk", "offline speech-to-text engine", ("vosk",)),
 ]
 
+LOCAL_DEPENDENCY_WHEELS = {
+    "pyncm": {
+        "path": PROJECT_ROOT / "vendor" / "pyncm-1.8.1-py3-none-any.whl",
+        "sha256": "a1798e9ff9007723d0a34b4d61b51b385b5bedb6caac6e04ce5572d00193183c",
+    },
+}
+
 TOTAL_STEPS = 6
 
-YUANBAO_SERVICE_REPO_ZIP = "https://github.com/chenwr727/yuanbao-free-api/archive/refs/heads/main.zip"
-YUANBAO_SERVICE_REPO_ZIP_FALLBACKS = (
-    YUANBAO_SERVICE_REPO_ZIP,
-    "https://codeload.github.com/chenwr727/yuanbao-free-api/zip/refs/heads/main",
-)
-YUANBAO_SERVICE_BUNDLED_ZIP = PROJECT_ROOT / "services" / "bundles" / "yuanbao-free-api-main.zip"
 YUANBAO_SERVICE_DIR = PROJECT_ROOT / "services" / "yuanbao-free-api"
 YUANBAO_SERVICE_REQUIRED_FILES = ("app.py", "requirements.txt")
 YUANBAO_SERVICE_BROWSER = "chromium"
@@ -180,6 +183,8 @@ VOSK_MODEL_SPECS = (
     {
         "name": "vosk-model-small-cn-0.22",
         "label": "Chinese",
+        "size": 43898754,
+        "sha256": "3af8b0e7e0f835ae9d414ce5df580237a3cfb08d586c9fbbb0f7ff29ad5b14ba",
         "urls": (
             {"name": "Official", "url": "https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip"},
         ),
@@ -187,11 +192,27 @@ VOSK_MODEL_SPECS = (
     {
         "name": "vosk-model-small-en-us-0.15",
         "label": "English",
+        "size": 41205931,
+        "sha256": "30f26242c4eb449f948e42cb302dd7a686cb29a3423a8367f99ff41780942498",
         "urls": (
             {"name": "Official", "url": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"},
         ),
     },
 )
+
+_MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024
+_MAX_ARCHIVE_ENTRIES = 50_000
+_MAX_EXTRACTED_BYTES = 4 * 1024 * 1024 * 1024
+_MAX_SINGLE_FILE_BYTES = 2 * 1024 * 1024 * 1024
+_MAX_COMPRESSION_RATIO = 200
+_WINDOWS_DEVICE_NAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{number}" for number in range(1, 10)),
+    *(f"lpt{number}" for number in range(1, 10)),
+}
 
 _NOT_FOUND_MARKERS = (
     "no matching distribution found",
@@ -396,22 +417,12 @@ def ensure_pip(python_exe):
         _print_kind("  已通过 ensurepip 安装 pip", "ok", prefix=False)
         return True
 
-    # B) get-pip.py
-    _print_kind("  ensurepip 失败，尝试 get-pip.py...", "warn", prefix=False)
-
-    tmp = Path(os.environ.get("TEMP", "C:\\Temp")) / "get-pip.py"
-    try:
-        urllib.request.urlretrieve("https://bootstrap.pypa.io/get-pip.py", str(tmp))
-        r = _run([python_exe, str(tmp)], timeout=240)
-        if r and r.returncode == 0 and _has_pip(python_exe):
-            _print_kind("  已通过 get-pip.py 安装 pip", "ok", prefix=False)
-            return True
-    except Exception as e:
-        _print_kind(f"  get-pip.py 执行失败: {e}", "warn", prefix=False)
-    finally:
-        _unlink_if_exists(tmp, ignore_errors=True)
-
-    _print_kind("  自动安装 pip 失败", "error", prefix=False)
+    _print_kind(
+        "  ensurepip 失败；为避免自动执行未经固定哈希校验的远程脚本，"
+        "安装器不会下载 get-pip.py。请从 python.org 安装包含 pip 的 Python。",
+        "error",
+        prefix=False,
+    )
     return False
 
 
@@ -530,14 +541,24 @@ def save_config(python_exe):
         "pythonw_executable": pythonw_cfg,
     }
 
+    config_path = PROJECT_ROOT / "py.ini"
+    temp_path = config_path.with_name(f".{config_path.name}.tmp")
     try:
-        with open(PROJECT_ROOT / "py.ini", "w", encoding="utf-8") as f:
+        with temp_path.open("w", encoding="utf-8") as f:
             cfg.write(f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_path, config_path)
         print("\n[config] py.ini updated:")
         print(f"  python_executable  = {python_cfg}")
         print(f"  pythonw_executable = {pythonw_cfg}")
     except Exception as e:
         print(f"\n[config] failed to write py.ini: {e}")
+    finally:
+        try:
+            temp_path.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def _tcp_ms(host, port=443, timeout=4.0):
@@ -597,6 +618,35 @@ def _pkg_installed(python_exe, pkg, import_checks=()):
 
 def _install_one(python_exe, pkg, mirrors):
     """Install one package with mirror fallback."""
+    local_spec = LOCAL_DEPENDENCY_WHEELS.get(str(pkg).casefold())
+    if local_spec is not None:
+        wheel_path = Path(local_spec["path"])
+        expected_sha256 = str(local_spec["sha256"]).casefold()
+        if not wheel_path.is_file():
+            print(f"    local wheel missing: {wheel_path}")
+            return False
+        actual_sha256 = hashlib.sha256(wheel_path.read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            print(
+                "    local wheel checksum mismatch: "
+                f"expected={expected_sha256} actual={actual_sha256}"
+            )
+            return False
+        print(f"    [local] {wheel_path.name} ...", end=" ", flush=True)
+        result = _run_pip(
+            python_exe,
+            "install",
+            str(wheel_path),
+            "--no-deps",
+            "--no-warn-script-location",
+            timeout=240,
+        )
+        if result is not None and result.returncode == 0:
+            print("ok")
+            return True
+        print("failed")
+        return False
+
     for i, mirror in enumerate(mirrors):
         label = "primary" if i == 0 else f"backup{i}"
         print(f"    [{label}] {mirror['name']} ...", end=" ", flush=True)
@@ -607,8 +657,6 @@ def _install_one(python_exe, pkg, mirrors):
             pkg,
             "-i",
             mirror["url"],
-            "--trusted-host",
-            mirror["host"],
             "--no-warn-script-location",
             timeout=240,
         )
@@ -803,66 +851,11 @@ def _download_yuanbao_service_bundle() -> bool:
     if _service_bundle_ready(YUANBAO_SERVICE_DIR, YUANBAO_SERVICE_REQUIRED_FILES):
         print(f"  已存在服务目录: {YUANBAO_SERVICE_DIR}")
         return True
-
-    def _install_from_archive(archive_path: Path, source_text: str) -> bool:
-        temp_root = Path(os.environ.get("TEMP", "C:\\Temp")) / "fsv_yuanbao_bundle"
-        extract_root = temp_root / "extract"
-        _rmtree_if_exists(temp_root, ignore_errors=True)
-        temp_root.mkdir(parents=True, exist_ok=True)
-        try:
-            print(f"  使用 {source_text} 准备 yuanbao-free-api 服务包...")
-            extract_root.mkdir(parents=True, exist_ok=True)
-            _extract_zip_with_progress(archive_path, extract_root)
-            bundle_root = _find_bundle_root(extract_root, YUANBAO_SERVICE_REQUIRED_FILES)
-            if bundle_root is None:
-                raise RuntimeError('服务包中未找到 app.py / requirements.txt')
-            _rmtree_if_exists(YUANBAO_SERVICE_DIR, ignore_errors=True)
-            YUANBAO_SERVICE_DIR.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(bundle_root), str(YUANBAO_SERVICE_DIR))
-            print(f"  已安装到: {YUANBAO_SERVICE_DIR}")
-            return True
-        except Exception as exc:
-            _print_warn(f"  安装 yuanbao-free-api 服务包失败 [{source_text}]: {exc}")
-            return False
-        finally:
-            _rmtree_if_exists(temp_root, ignore_errors=True)
-
-    if YUANBAO_SERVICE_BUNDLED_ZIP.exists():
-        if _install_from_archive(YUANBAO_SERVICE_BUNDLED_ZIP, "仓库内置压缩包"):
-            return True
-
-    temp_root = Path(os.environ.get("TEMP", "C:\\Temp")) / "fsv_yuanbao_bundle"
-    archive_path = temp_root / "yuanbao-free-api-main.zip"
-    _rmtree_if_exists(temp_root, ignore_errors=True)
-    temp_root.mkdir(parents=True, exist_ok=True)
-    try:
-        print("  下载 yuanbao-free-api 服务包...")
-        last_error = None
-        for idx, url in enumerate(YUANBAO_SERVICE_REPO_ZIP_FALLBACKS, start=1):
-            _unlink_if_exists(archive_path, ignore_errors=True)
-            use_env_proxy = idx == 1
-            source_name = f"yuanbao-free-api#{idx}"
-            try:
-                _stream_download_with_progress(
-                    url,
-                    archive_path,
-                    label=source_name,
-                    use_env_proxy=use_env_proxy,
-                )
-                last_error = None
-                break
-            except Exception as exc:
-                last_error = exc
-                proxy_mode = "系统代理" if use_env_proxy else "直连(禁用代理)"
-                _print_warn(f"  下载源失败 [{proxy_mode}] {url}: {exc}")
-        if last_error is not None:
-            raise last_error
-        return _install_from_archive(archive_path, '在线下载压缩包')
-    except Exception as e:
-        _print_warn(f"  下载/解压 yuanbao-free-api 失败: {e}")
-        return False
-    finally:
-        _rmtree_if_exists(temp_root, ignore_errors=True)
+    _print_warn(
+        "  发行包缺少 services/yuanbao-free-api；为避免下载未经固定与校验的"
+        "浮动源码，安装器不会在线补取。请重新获取完整的爱弥斯发行包。"
+    )
+    return False
 
 
 def _ensure_playwright_browser(python_exe) -> bool:
@@ -896,7 +889,20 @@ def ensure_yuanbao_service_bundle(python_exe) -> bool:
     return bundle_ok
 
 
-def _stream_download_with_progress(url, dest_path, *, label, timeout=30, chunk_size=256 * 1024, use_env_proxy=True):
+def _stream_download_with_progress(
+    url,
+    dest_path,
+    *,
+    label,
+    timeout=30,
+    chunk_size=256 * 1024,
+    use_env_proxy=True,
+    expected_size=0,
+    max_bytes=_MAX_DOWNLOAD_BYTES,
+):
+    parsed_url = urlparse(str(url or ""))
+    if parsed_url.scheme != "https" or not parsed_url.hostname:
+        raise OSError("download URL must use HTTPS")
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     _unlink_if_exists(dest_path)
 
@@ -914,15 +920,22 @@ def _stream_download_with_progress(url, dest_path, *, label, timeout=30, chunk_s
     last_draw = 0.0
     opener = urllib.request.build_opener() if use_env_proxy else urllib.request.build_opener(urllib.request.ProxyHandler({}))
     with opener.open(request, timeout=timeout) as response, open(dest_path, "wb") as fp:
+        final_url = urlparse(str(response.geturl() or ""))
+        if final_url.scheme != "https" or not final_url.hostname:
+            raise OSError("download redirected to a non-HTTPS URL")
         total_header = response.headers.get("Content-Length")
         total = int(total_header) if total_header and total_header.isdigit() else 0
+        if total > max_bytes:
+            raise OSError("download exceeds size limit")
         current = 0
         while True:
             chunk = response.read(chunk_size)
             if not chunk:
                 break
-            fp.write(chunk)
             current += len(chunk)
+            if current > max_bytes:
+                raise OSError("download exceeds size limit")
+            fp.write(chunk)
             now = time.perf_counter()
             if now - last_draw >= 0.12:
                 sys.stdout.write("\r" + _render_transfer_progress("    downloading", current, total, start_time))
@@ -935,6 +948,37 @@ def _stream_download_with_progress(url, dest_path, *, label, timeout=30, chunk_s
     final_size = dest_path.stat().st_size if dest_path.exists() else 0
     if total and final_size != total:
         raise IOError(f"download incomplete: {final_size}/{total} bytes")
+    if expected_size and final_size != expected_size:
+        raise IOError(
+            f"download size mismatch: {final_size}/{expected_size} bytes"
+        )
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file_obj:
+        for chunk in iter(lambda: file_obj.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _safe_archive_member_path(name: str) -> Path:
+    posix = PurePosixPath(str(name).replace("\\", "/"))
+    unsafe = posix.is_absolute() or not posix.parts
+    for part in posix.parts:
+        stem = part.split(".", 1)[0].casefold()
+        if (
+            part in ("", ".", "..")
+            or ":" in part
+            or part != part.rstrip(" .")
+            or any(ord(char) < 32 for char in part)
+            or stem in _WINDOWS_DEVICE_NAMES
+        ):
+            unsafe = True
+            break
+    if unsafe:
+        raise OSError(f"archive contains unsafe path: {name}")
+    return Path(*posix.parts)
 
 
 def _extract_zip_with_progress(zip_path, extract_root):
@@ -943,15 +987,65 @@ def _extract_zip_with_progress(zip_path, extract_root):
 
     with zipfile.ZipFile(zip_path, "r") as zf:
         members = zf.infolist()
-        total = sum(max(0, item.file_size) for item in members if not item.is_dir())
+        if len(members) > _MAX_ARCHIVE_ENTRIES:
+            raise OSError("archive entry count exceeds safety limit")
+        total = 0
+        seen_paths: set[str] = set()
+        validated: list[tuple[zipfile.ZipInfo, Path]] = []
+        for item in members:
+            relative = _safe_archive_member_path(item.filename)
+            path_key = relative.as_posix().casefold()
+            if path_key in seen_paths:
+                raise OSError(
+                    f"archive contains duplicate path: {item.filename}"
+                )
+            seen_paths.add(path_key)
+            unix_mode = (item.external_attr >> 16) & 0xFFFF
+            if stat.S_ISLNK(unix_mode):
+                raise OSError(f"archive contains symlink: {item.filename}")
+            if item.flag_bits & 0x1:
+                raise OSError(f"archive contains encrypted entry: {item.filename}")
+            file_size = max(0, int(item.file_size))
+            compressed_size = max(0, int(item.compress_size))
+            if file_size > _MAX_SINGLE_FILE_BYTES:
+                raise OSError(f"archive file exceeds safety limit: {item.filename}")
+            if file_size and (
+                compressed_size == 0
+                or file_size > compressed_size * _MAX_COMPRESSION_RATIO
+            ):
+                raise OSError(f"archive compression ratio is unsafe: {item.filename}")
+            if not item.is_dir():
+                total += file_size
+                if total > _MAX_EXTRACTED_BYTES:
+                    raise OSError("archive extracted size exceeds safety limit")
+            validated.append((item, relative))
         current = 0
         start_time = time.perf_counter()
         last_draw = 0.0
 
-        for item in members:
-            zf.extract(item, extract_root)
-            if not item.is_dir():
-                current += max(0, item.file_size)
+        for item, relative in validated:
+            target = extract_root / relative
+            if item.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                extracted = 0
+                with zf.open(item, "r") as source, target.open("wb") as output:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        extracted += len(chunk)
+                        if extracted > item.file_size:
+                            raise OSError(
+                                f"archive entry exceeds declared size: {item.filename}"
+                            )
+                        output.write(chunk)
+                if extracted != item.file_size:
+                    raise OSError(
+                        f"archive entry size mismatch: {item.filename}"
+                    )
+                current += extracted
             now = time.perf_counter()
             if now - last_draw >= 0.12:
                 sys.stdout.write("\r" + _render_transfer_progress("    extracting ", current, total, start_time))
@@ -1005,7 +1099,16 @@ def _ensure_single_vosk_model(spec: dict) -> bool:
         print(f"  - {spec['name']} ({label}, {source['name']})")
         try:
             _cleanup_vosk_temp_artifacts(archive_path, part_path, extract_root)
-            _stream_download_with_progress(source["url"], part_path, label=source["name"])
+            _stream_download_with_progress(
+                source["url"],
+                part_path,
+                label=source["name"],
+                expected_size=int(spec.get("size") or 0),
+            )
+            actual_sha256 = _sha256_file(part_path)
+            expected_sha256 = str(spec.get("sha256") or "").casefold()
+            if not expected_sha256 or actual_sha256.casefold() != expected_sha256:
+                raise OSError("downloaded model SHA256 mismatch")
             part_path.replace(archive_path)
             _extract_zip_with_progress(archive_path, extract_root)
             source_dir = _resolve_vosk_model_source_dir(extract_root)

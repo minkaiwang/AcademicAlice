@@ -35,6 +35,7 @@ from PyQt5.QtWidgets import (
     QScrollArea,
     QSizePolicy,
     QFileDialog,
+    QMessageBox,
     QSlider,
     QMenu,
 )
@@ -719,7 +720,7 @@ def _mirror_config_text_to_shared(rel_name: str, text: str) -> None:
 
 
 def _reset_shared_core_configs_from_project() -> None:
-    """将 C 盘共享配置中的核心配置文件重置为项目当前版本。"""
+    """将用户共享目录中的核心配置文件重置为项目当前版本。"""
     try:
         ensure_shared_config_ready()
         project_cfg_dir = _project_root() / "config"
@@ -732,7 +733,7 @@ def _reset_shared_core_configs_from_project() -> None:
             dst.parent.mkdir(parents=True, exist_ok=True)
             _write_text_atomic(dst, text)
     except Exception as e:
-        _logger.warning("重置C盘本地配置失败: %s", e)
+        _logger.warning("重置用户共享配置失败: %s", e)
 
 
 def _is_supported_config_value(value) -> bool:
@@ -3543,12 +3544,12 @@ class AISettingsPanel(QWidget):
             "force_reply_mode": force_mode,
             "api_base_url": self._api_base_url.text().strip(),
             "api_model": self._api_model.text().strip(),
-            "yuanbao_login_url": str(_DEFAULT_VALUES.get("yuanbao_login_url", "") or "").strip(),
+            "yuanbao_login_url": str(self._yuanbao_login_url_value or "").strip(),
             "yuanbao_free_api_enabled": bool(self._yuanbao_free_api_enabled.isChecked()),
-            "yuanbao_hy_source": str(_DEFAULT_VALUES.get("yuanbao_hy_source", "web") or "").strip(),
-            "yuanbao_hy_user": "",
-            "yuanbao_x_uskey": "",
-            "yuanbao_agent_id": str(_DEFAULT_VALUES.get("yuanbao_agent_id", "naQivTmsDa") or "").strip(),
+            "yuanbao_hy_source": str(self._yuanbao_hy_source_value or "web").strip(),
+            "yuanbao_hy_user": str(self._yuanbao_hy_user_value or "").strip(),
+            "yuanbao_x_uskey": str(self._yuanbao_x_uskey_value or "").strip(),
+            "yuanbao_agent_id": str(self._yuanbao_agent_id_value or "").strip(),
             "yuanbao_chat_id": self._yuanbao_chat_id.text().strip(),
             "yuanbao_remove_conversation": bool(self._yuanbao_remove_conversation.isChecked()),
             "yuanbao_upload_images": bool(self._yuanbao_upload_images.isChecked()),
@@ -3571,12 +3572,12 @@ class AISettingsPanel(QWidget):
         self._api_key.set_raw_text(str(values.get("api_key", "")))
         self._api_base_url.setText(str(values.get("api_base_url", "")))
         self._api_model.setText(str(values.get("api_model", "")))
-        self._yuanbao_login_url_value = str(_DEFAULT_VALUES.get("yuanbao_login_url", ""))
+        self._yuanbao_login_url_value = str(values.get("yuanbao_login_url", ""))
         self._yuanbao_free_api_enabled.setChecked(bool(values.get("yuanbao_free_api_enabled", False)))
-        self._yuanbao_hy_source_value = str(_DEFAULT_VALUES.get("yuanbao_hy_source", "web"))
-        self._yuanbao_hy_user_value = ""
-        self._yuanbao_x_uskey_value = ""
-        self._yuanbao_agent_id_value = str(_DEFAULT_VALUES.get("yuanbao_agent_id", "naQivTmsDa"))
+        self._yuanbao_hy_source_value = str(values.get("yuanbao_hy_source", "web"))
+        self._yuanbao_hy_user_value = str(values.get("yuanbao_hy_user", ""))
+        self._yuanbao_x_uskey_value = str(values.get("yuanbao_x_uskey", ""))
+        self._yuanbao_agent_id_value = str(values.get("yuanbao_agent_id", "naQivTmsDa"))
         self._yuanbao_chat_id.setText(str(values.get("yuanbao_chat_id", "")))
         self._yuanbao_remove_conversation.setChecked(bool(values.get("yuanbao_remove_conversation", False)))
         self._yuanbao_upload_images.setChecked(bool(values.get("yuanbao_upload_images", True)))
@@ -3656,19 +3657,65 @@ class AISettingsPanel(QWidget):
 
         def worker() -> None:
             manager = UpdateManager(info_callback=info_callback)
+            install_prompt_scheduled = False
             try:
-                manager.check_and_update()
+                result = manager.check_for_update()
+                if result.reason == "update_available":
+                    install_prompt_scheduled = True
+                    self._run_on_ui_thread(
+                        lambda: self._confirm_and_install_update(
+                            manager,
+                            result.release_info,
+                        )
+                    )
             except UpdateError as exc:
                 self._emit_info(f"检查更新失败: {exc}", min_tick=18, max_tick=200)
             except Exception as exc:  # pragma: no cover - 防御性日志
                 _logger.error("Unhandled update exception: %s", exc)
                 self._emit_info(f"检查更新失败: {exc}", min_tick=18, max_tick=200)
             finally:
-                self._set_check_updates_busy(False)
+                if not install_prompt_scheduled:
+                    self._set_check_updates_busy(False)
 
         self._set_check_updates_busy(True)
         self._emit_info("正在通过 GitHub 检查更新...", min_tick=12, max_tick=160)
         threading.Thread(target=worker, daemon=True, name="ai-update-check").start()
+
+    def _confirm_and_install_update(self, manager, release) -> None:
+        answer = QMessageBox.question(
+            self,
+            "发现爱弥斯更新",
+            (
+                f"发现新版本 {release.tag}（{release.published_at.date()}）。\n\n"
+                f"更新包：{release.asset_name}\n"
+                "安装前会校验独立 SHA256、备份被替换文件；失败时自动回滚。\n"
+                "是否现在下载并安装？"
+            ),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if answer != QMessageBox.Yes:
+            self._emit_info("已取消安装；检查更新未修改任何文件。")
+            self._set_check_updates_busy(False)
+            return
+
+        def install_worker() -> None:
+            try:
+                manager.install_release(release)
+            except UpdateError as exc:
+                self._emit_info(f"安装更新失败: {exc}", min_tick=18, max_tick=220)
+            except Exception as exc:  # pragma: no cover - 防御性日志
+                _logger.error("Unhandled update install exception: %s", exc)
+                self._emit_info(f"安装更新失败: {exc}", min_tick=18, max_tick=220)
+            finally:
+                self._set_check_updates_busy(False)
+
+        self._set_check_updates_busy(True)
+        threading.Thread(
+            target=install_worker,
+            daemon=True,
+            name="ai-update-install",
+        ).start()
 
     def _on_restore_defaults(self) -> None:
         self._set_values_to_form(_DEFAULT_VALUES)

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Compile Python sources
+        run: python -m compileall -q config lib install scripts services tests
+
+      - name: Static Python correctness checks
+        run: python -m ruff check --select E9,F63,F7,F82,F841 config lib install scripts services tests
+
+      - name: Run tests
+        env:
+          AEMEATH_SHARED_ROOT: ${{ runner.temp }}\AemeathDeskPet
+        run: python -m pytest
+
+      - name: Audit pinned embedded-service dependencies
+        if: matrix.python-version == '3.13'
+        run: python -m pip_audit -r services/yuanbao-free-api/requirements.txt --progress-spinner off --strict
+
+      - name: Audit runtime dependency resolution
+        if: matrix.python-version == '3.13'
+        # pyncm 的 PyPI 项目当前不可查询；其本地 wheel 完整性由 pytest
+        # 中的固定 SHA256 合同验证，因此这里不使用 --strict。
+        run: python -m pip_audit -r install/requirements.txt --progress-spinner off
+
+      - name: Check brand strings
+        run: python scripts/check_brand_strings.py
+
+      - name: Validate release manifests
+        run: |
+          python scripts/package_release.py --dry-run
+          python scripts/package_green_release.py --dry-run

@@ -159,7 +159,7 @@ class PetWindow(BaseEntity):
         self._cached_effective_top = self._effective_pet_stays_on_top()
         attach_pet_window_ui(self, on_close=self._request_app_quit)
 
-        # 鎭㈠绌块€忔寜閽湪鍚敤鏃舵寜闇€鍒涘缓
+        # 恢复穿透按钮，在启用时按需创建。
         self._restore_btn = None
 
 
@@ -240,7 +240,7 @@ class PetWindow(BaseEntity):
             self._draw_core.render(painter, target_rect)
 
     def _handle_ui_create(self, event):
-        """?? UI ??????"""
+        """处理 UI 锚点查询。"""
         window_id = event.data.get('window_id')
         anchor_id = event.data.get('anchor_id')
         ui_id = event.data.get('ui_id')
@@ -254,7 +254,7 @@ class PetWindow(BaseEntity):
                 ui_id=ui_id,
             )
 
-        # ?? UI ??????? UI_CREATE ?????? PetWindow ??
+        # 其他 UI 锚点由对应组件订阅 UI_CREATE 后自行响应。
 
     def _effective_pet_stays_on_top(self) -> bool:
         """穿透模式下始终置顶；否则由控制面板 UI['pet_stays_on_top'] 决定。"""
@@ -834,7 +834,7 @@ class PetWindow(BaseEntity):
     def _preload_ui(self):
         """预加载 UI 组件 - 触发一次 UI 显示和隐藏以初始化动画和资源"""
         # 延迟 500ms 后开始预加载，确保宠物窗口已经完全初始化
-        preload_task_id = self.schedule_task(self._do_preload_ui, 500, repeat=False)
+        self.schedule_task(self._do_preload_ui, 500, repeat=False)
 
     def _do_preload_ui(self):
         """执行 UI 预加载 - 触发淡入动画后立即淡出，仅用于预热，不持续占据显示"""

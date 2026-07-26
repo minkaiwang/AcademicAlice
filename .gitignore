@@ -15,6 +15,8 @@ env/
 .vscode/
 .idea/
 .vs/
+output/playwright/
+.playwright-cli/
 
 # Build / dist artifacts
 build/
@@ -28,7 +30,7 @@ logs/
 *.log
 py.ini
 AA更新日志.txt.bak
-services/storage_state.json
+services/**/storage_state*.json
 
 # Generated assets & downloads
 resc/models/

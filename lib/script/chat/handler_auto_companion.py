@@ -1,4 +1,4 @@
-"""ChatHandler ???????"""
+"""ChatHandler 自动陪伴逻辑。"""
 
 import random
 
@@ -118,4 +118,3 @@ class ChatHandlerAutoCompanionMixin:
             logger.error("[ChatHandler] 自动陪伴请求失败: %s", e)
         finally:
             self._schedule_next_auto_tick()
-

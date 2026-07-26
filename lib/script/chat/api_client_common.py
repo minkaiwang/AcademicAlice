@@ -1,4 +1,4 @@
-"""API client ???????????"""
+"""API 客户端公共数据与辅助函数。"""
 
 from typing import Any
 
@@ -70,6 +70,7 @@ class _ApiClientCommonMixin:
     def _request_once(method: str, url: str, *, trust_env: bool, **kwargs) -> requests.Response:
         sess = requests.Session()
         sess.trust_env = bool(trust_env)
+        kwargs.setdefault("timeout", (10.0, 90.0))
         if not trust_env:
             try:
                 sess.proxies.clear()

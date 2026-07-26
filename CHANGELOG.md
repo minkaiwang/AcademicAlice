@@ -1,6 +1,33 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. This project follows semantic-style tags (`LTS1.0.5pre1`, etc.) and dates use ISO format.
+All notable changes to this project will be documented in this file. This project follows semantic-style tags (`LTS1.0.5pre2`, etc.) and dates use ISO format.
+
+## [1.0.5-pre2] - 2026-07-26
+
+### Added
+- 科研工作台改用共享数据目录中的版本化 JSON 主存储，支持原子写入、轮换备份、损坏恢复和旧浏览器缓存迁移。
+- 新增带版本清单、大小与 SHA256 校验、用户确认、备份和失败回滚的更新事务。
+- 新增 Windows DPAPI 凭据存储、本机元宝服务 Bearer 鉴权、构建环境检查、Windows CI、pytest 回归与确定性发行清单。
+- 新增 `PROJECT_MANAGEMENT.md`、`CHANGE_HISTORY.md`、`ROADMAP.md`、审计报告和第三方组件通知。
+
+### Fixed
+- 修复工作台因随机端口或浏览器缓存隔离造成的数据丢失风险。
+- 修复正常退出强杀进程、GSVmove 误结束非本应用进程、冻结版元宝服务隐藏失败和空密钥仍可能触发浏览器的问题。
+- 修复更新包路径穿越、错误附件、无完整性校验、直接覆盖以及失败后无法恢复等高风险路径。
+- 修复更新检查只比较发布日期的问题；现在按 `pre` / 正式版与主次修订号排序，同日新版本可更新，未来日期也不能触发降级。
+- 修复构建包夹带日志、用户数据、备份、浏览器状态或临时文件的风险。
+- 修复工作台依赖公共 CDN 导致断网界面降级的问题，并完成桌面、移动视口和离线 Chromium 回归。
+
+### Changed
+- Python 支持矩阵统一为 3.11–3.13；PyInstaller 固定为 6.21.0。
+- 新安装的共享数据根默认改为 `%LOCALAPPDATA%\AemeathDeskPet`，已存在的旧系统盘数据目录继续兼容。
+- 默认依赖移除会锁定已知受影响 `cryptography` 版本的可选 `musicdl` 兜底；QQ / 酷狗改回直接接口并安全降级。
+- pyncm 1.8.1 改用仓库内固定 SHA256、逐文件 RECORD 校验的最小 wheel，以应对原分发入口失效。
+
+### Release status
+- 本条目对应 `LTS1.0.5pre2` 稳定性预发布候选。
+- 在受限美术 / 音频的再分发授权和内嵌元宝服务许可证正文完成清关前，不发布公开二进制附件或 GitHub Release。
+- 自动化通过不代表真实账号、音乐接口、麦克风、GSVmove 与长时间真人运行已经验收。
 
 ## [1.0.5-pre1] - 2026-03-18
 

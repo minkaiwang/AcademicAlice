@@ -9,7 +9,7 @@ from typing import Dict, Optional
 from playwright.async_api import Browser, BrowserContext, Locator, Page, TimeoutError as PlaywrightTimeoutError, async_playwright
 
 from src.config import settings
-from src.utils.qr_utils import decode_qr_from_image, extract_qr_region_from_image, print_qr_to_terminal
+from src.utils.qr_utils import decode_qr_from_image, extract_qr_region_from_image
 
 logger = logging.getLogger(__name__)
 
@@ -756,11 +756,6 @@ class BrowserManager:
                     raise RuntimeError("qrcode_extract_failed")
             elif not await self._capture_qrcode_fallback():
                 raise RuntimeError("qrcode_container_not_found")
-
-            try:
-                print_qr_to_terminal(settings.qrcode_path)
-            except Exception as exc:
-                logger.warning("[Browser] Failed to print QR in terminal: %s", exc)
 
             logger.info("[Browser] Waiting for scan confirmation and QR refresh...")
             logged_in = await self._wait_for_login_or_refresh(login_button)

@@ -238,7 +238,7 @@ class PlayPauseButton(SpeakerControlButton):
         self._sync_playing_state()
 
     def _sync_playing_state(self):
-        """??????????????"""
+        """从播放器同步当前播放状态。"""
         self.set_playing(_music_is_playing())
 
     def set_playing(self, playing: bool):
@@ -550,7 +550,7 @@ class PlaylistButton(SpeakerControlButton):
             from lib.script.ui.playlist_panel import get_playlist_panel, init_playlist_panel
             from lib.script.ui.progress_panel import get_progress_panel, init_progress_panel
             # 初始化进度条（懒初始化单例）
-            progress_panel = get_progress_panel() or init_progress_panel()
+            get_progress_panel() or init_progress_panel()
             # 初始化播放列表
             panel = get_playlist_panel() or init_playlist_panel()
             panel.show_for(speaker)
@@ -678,7 +678,7 @@ class LikedQueueButton(SpeakerControlButton):
 
 
 class VolumeDownButton(SpeakerControlButton):
-    """??????"""
+    """降低音量按钮。"""
 
     _STEP = -0.05
 
@@ -686,7 +686,7 @@ class VolumeDownButton(SpeakerControlButton):
         super().__init__(_BTN_WIDTH, _BTN_HEIGHT)
         self._label_font = get_ui_font()
         self._label_font.setBold(True)
-        self._description = TOOLTIPS.get('speaker_volume_down', '????')
+        self._description = TOOLTIPS.get('speaker_volume_down', '降低音量')
 
     def _draw_icon(self, painter, rect):
         painter.setRenderHint(QPainter.Antialiasing, False)
@@ -700,7 +700,7 @@ class VolumeDownButton(SpeakerControlButton):
 
 
 class VolumeUpButton(SpeakerControlButton):
-    """??????"""
+    """提高音量按钮。"""
 
     _STEP = 0.05
 
@@ -708,7 +708,7 @@ class VolumeUpButton(SpeakerControlButton):
         super().__init__(_BTN_WIDTH, _BTN_HEIGHT)
         self._label_font = get_ui_font()
         self._label_font.setBold(True)
-        self._description = TOOLTIPS.get('speaker_volume_up', '????')
+        self._description = TOOLTIPS.get('speaker_volume_up', '提高音量')
 
     def _draw_icon(self, painter, rect):
         painter.setRenderHint(QPainter.Antialiasing, False)
@@ -768,7 +768,7 @@ class SpeakerControlButtons:
         self._event_center.subscribe(EventType.UI_CREATE, self._on_ui_create)
 
     def _on_ui_create(self, event):
-        """UI?????? - ???????"""
+        """响应 UI 锚点查询。"""
         target_ui_id = event.data.get('ui_id')
         request_anchor_id = event.data.get('anchor_id')
 

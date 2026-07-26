@@ -1,4 +1,6 @@
 """CMD命令中心 - 订阅输入事件，分发处理逻辑"""
+import hashlib
+import os
 import subprocess
 import threading
 
@@ -9,7 +11,13 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from lib.core.event.center import get_event_center, EventType, Event
 from lib.core.hash_cmd_registry import get_hash_cmd_registry
-from config.config import TIMEOUTS
+from config.config import SECURITY, TIMEOUTS
+
+
+def _shell_command_argv(command: str) -> list[str]:
+    if os.name == "nt":
+        return ["cmd.exe", "/d", "/s", "/c", command]
+    return ["/bin/sh", "-c", command]
 
 
 class _ResultSignal(QObject):
@@ -21,7 +29,7 @@ class CmdCenter:
     """
     CMD命令中心
 
-    - INPUT_COMMAND（/前缀）：在后台线程执行 shell 命令，输出发布为 INFORMATION 事件
+    - INPUT_COMMAND（/前缀）：仅在显式安全开关启用后执行本机 shell 命令
     - INPUT_HASH  （#前缀）：调试日志 + 未知命令失败气泡；具体命令由各管理器直接订阅处理
     - INPUT_CHAT  （无前缀）：由 ChatHandler 处理，此处不再重复处理
     """
@@ -45,28 +53,44 @@ class CmdCenter:
         cmd = event.data.get('text', '').strip()
         if not cmd:
             return
+        if not bool(SECURITY.get('enable_shell_commands', False)):
+            self._signal.ready.emit(
+                "本机 shell 命令默认关闭。仅维护者可在 "
+                "config/config_runtime.py 的 SECURITY 中显式启用。"
+            )
+            logger.warning("[Security] 已拦截默认关闭的 / shell 命令")
+            return
         threading.Thread(target=self._run_command, args=(cmd,), daemon=True).start()
 
     def _run_command(self, cmd: str):
         """在后台线程中执行命令（超时配置化，不阻塞 Qt 主线程）"""
         timeout_val = TIMEOUTS['cmd_exec']
+        return_code: int | str = "error"
         try:
             cflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
             result = subprocess.run(
-                cmd,
-                shell=True,
+                _shell_command_argv(cmd),
+                shell=False,
                 capture_output=True,
                 timeout=timeout_val,
                 creationflags=cflags,
             )
             raw = result.stdout or result.stderr or b''
             output = raw.decode('gbk', errors='replace').strip() or '命令执行完成'
+            return_code = result.returncode
         except subprocess.TimeoutExpired:
             output = f'命令超时（{timeout_val}s）'
+            return_code = "timeout"
         except Exception as e:
             output = f'错误: {e}'
 
-        logger.debug('[CmdCenter] /%s  →  %s', cmd, output[:80])
+        command_digest = hashlib.sha256(cmd.encode("utf-8")).hexdigest()[:12]
+        logger.warning(
+            '[Security] 已执行显式启用的本机 shell 命令 digest=%s length=%s return=%s',
+            command_digest,
+            len(cmd),
+            return_code,
+        )
         # 通过 Qt 信号安全传回主线程（PyQt5 跨线程自动使用队列连接）
         self._signal.ready.emit(output)
 

@@ -1,4 +1,4 @@
-"""???????????????"""
+"""运行环境、绘制缩放与高风险能力开关。"""
 
 from __future__ import annotations
 
@@ -98,6 +98,11 @@ set_draw_scale(DRAW['scale'])
 
 STARTUP = {
     'ensure_desktop_shortcut': True,
+}
+
+SECURITY = {
+    # 高风险调试能力，默认关闭。只有维护者理解“/”命令会执行本机 shell 时才可开启。
+    'enable_shell_commands': False,
 }
 
 _user_scale_config = get_user_scale_config()

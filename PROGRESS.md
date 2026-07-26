@@ -1,8 +1,10 @@
 # 学术桌面助手 — 设计说明与开发进展
 
-本文件是 **产品目标 + 与当前仓库对齐的技术设计 + 里程碑 + 变更日志** 的单一事实来源（SSOT）。实施前以代码为准；若实现与设计分歧，应 **先改本文再改代码**，或在本文件「决策记录」中写明例外原因。
+> **2026-07-26 文档分工**：当前状态、问题优先级、风险与验收门禁以 `PROJECT_MANAGEMENT.md` 为入口；本文件继续保存 **产品目标、技术设计、历史里程碑与 ADR**。工程修改流水见 `CHANGE_HISTORY.md`，未来阶段计划见 `ROADMAP.md`，本轮审计证据见 `AUDIT_REPORT_2026-07-26.md`。
 
-**维护约定**：合并可交付功能或修复跨模块行为时，更新「当前状态」「里程碑勾选」「变更日志」；架构级取舍写入「决策记录」。
+本文件是 **产品目标 + 与当前仓库对齐的技术设计 + 历史里程碑与决策记录** 的事实来源。实施前以代码为准；若实现与设计分歧，应更新对应权威文档，或在本文件「决策记录」中写明例外原因。
+
+**维护约定**：合并可交付功能或修复跨模块行为时，更新 `PROJECT_MANAGEMENT.md` 状态与 `CHANGE_HISTORY.md`；架构级取舍仍写入本文件「决策记录」。
 
 ---
 
@@ -77,10 +79,13 @@
 ### 2.6 配置与用户数据路径（设计参考）
 
 - **项目内配置**：`config/`，含 `shared_storage*.py`、`config.py` 等。  
-- **跨安装共享目录**（现有约定）：`config/shared_storage_paths.py` 中 `get_shared_root_dir()` → 默认 **`{SystemDrive}\AemeathDeskPet`** 下 `config` 等。  
+- **跨安装共享目录**（现有约定）：`config/shared_storage_paths.py` 中
+  `get_shared_root_dir()` → 显式 `AEMEATH_SHARED_ROOT` 优先；已存在的旧版
+  **`{SystemDrive}\AemeathDeskPet`** 继续沿用；新安装默认
+  **`%LOCALAPPDATA%\AemeathDeskPet`**，避免普通用户首次写系统盘根目录失败。
 - **学术 SQLite 建议**：  
   - **首选**：`get_shared_root_dir() / "academic" / "deskpet_academic.db"`（与现有「同机多副本共享数据」策略一致），或  
-  - **备选**：`%LOCALAPPDATA%\FlyingSnowVelvetAcademic\` 下单独目录，避免与现有共享 JSON 混放。  
+  - **备选**：共享根下单独的 `academic/` 子目录，避免与普通配置混放。
   - **最终路径须在 M0 结束写死一条并在「决策记录」登记**，实现时封装为单一模块（如 `lib/script/obj-academic/store/paths.py`），禁止在 UI 层拼字符串。
 
 ---
@@ -212,7 +217,12 @@
 
 **与上表关系**：M3 中未勾选的两条分别对应 **B**（导出/导入）与 **C**（本地摘要）。M2 中「SQLite 与工作台双向同步」**不**列入 A→C 必经顺序；若单独要做，另起决策与排期。
 
-**路线 A 进展（摘录）**：`research_workbench.html` — `localStorage` 写入增加 **QuotaExceededError** 等捕获与用户提示；Tauri JSON 加载路径对 **损坏 JSON** 做解析保护并回退本地缓存；剪贴板复制失败时提示改用 **导出 JSON**；设置页统计卡片容器缺失时避免抛错。后续继续交互走查与 Chart.js 外链断网表现等。
+**路线 A 进展（摘录）**：`research_workbench.html` 已通过本机
+`/api/state` 把规范化状态写入共享根 `workbench/state.json`；服务端采用临时
+文件 + `os.replace`、schema / 大小校验、备份轮换与损坏恢复，旧
+`localStorage` 在首次成功迁移后退出主存储职责。剪贴板失败会引导导出 JSON；
+Tailwind、Chart.js、Font Awesome 均已本地化，并完成桌面、390 px 移动端与
+断网真实 Chromium 回归。
 
 ---
 
@@ -236,6 +246,10 @@
 | D4 | 2026-05-03 | 农历与法定假展示依赖 `lunar-python` + `chinesecalendar` | 统一经 `calendar_facade.py` 输出 `DayCalendarInfo`；`requirements.txt` 声明版本；无依赖或异常时降级为仅公历格不崩溃 |
 | D5 | 2026-05-03 | SQLite `user_version = 3`：`categories`、`event_subtasks`，`events`/`todos` 扩展列 | `db.py` 迁移 + `categories_repo` / `subtasks_repo` / `events_repo` / `todos_repo` 与 UI 字段对齐 |
 | D6 | 2026-05-03 | 移除 PyQt 日程栈与 `lunar-python` / `chinesecalendar`；`user_version = 4` 丢弃旧日程表 | 产品以 `resc/workbench` 为学术主界面；`AcademicManager` 仅保留工作台入口与库路径初始化 |
+| D7 | 2026-07-26 | 工作台主状态迁移到共享根 `workbench/state.json`，浏览器缓存只作迁移 / 降级 | 随机本机端口不再分割主数据；原子写入、schema 校验与轮换备份支持损坏恢复 |
+| D8 | 2026-07-26 | 新安装共享根改为 `%LOCALAPPDATA%\AemeathDeskPet`，已存在旧根继续沿用 | 普通用户不应因无权写系统盘根目录而首次启动失败，同时保持旧数据兼容 |
+| D9 | 2026-07-26 | 更新采用 manifest + SHA256 + 明确确认 + 备份 / 回滚；发行 ZIP 由受控清单确定性生成 | 防止“检查更新”直接覆盖、路径穿越、错误附件和脏工作树污染 |
+| D10 | 2026-07-26 | 默认依赖移除 `musicdl`，QQ / 酷狗使用直接接口并安全降级 | `musicdl 2.13.3` 强制依赖受 `GHSA-537c-gmf6-5ccf` 影响的 `cryptography<47`，且只是可选兜底 |
 
 （后续行追加，勿删历史。）
 

@@ -10,7 +10,6 @@ import subprocess
 import sys
 import threading
 import time
-import zipfile
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
@@ -20,6 +19,7 @@ from urllib.request import Request, urlopen
 from lib.script.app.win_subprocess import run as _subprocess_run_hidden
 
 import config.ollama_config as oc
+from config.shared_storage_paths import get_shared_root_dir
 from lib.core.event.center import Event, EventType, get_event_center
 from lib.core.logger import get_logger
 
@@ -29,7 +29,6 @@ _STARTUP_WAIT_SECS = 165.0
 _POLL_INTERVAL_SECS = 0.5
 _LOGIN_MONITOR_SECS = 300.0
 _SERVICE_REQUIRED_FILES = ('app.py', 'requirements.txt')
-_BUNDLED_ARCHIVE_NAME = 'yuanbao-free-api-main.zip'
 _STATUS_ENDPOINT = '/fsv/status'
 _LOGIN_ENDPOINT = '/fsv/login'
 _LOGOUT_ENDPOINT = '/fsv/logout'
@@ -56,70 +55,27 @@ def _service_entry() -> Path:
     return _service_dir() / 'app.py'
 
 
-def _bundled_archive_path() -> Path:
-    return _project_root() / 'services' / 'bundles' / _BUNDLED_ARCHIVE_NAME
-
-
 def _log_path() -> Path:
-    path = _project_root() / 'logs' / 'yuanbao_free_api_launcher.log'
+    path = get_shared_root_dir() / 'yuanbao_free_api' / 'launcher.log'
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 
 
 def _qrcode_path() -> Path:
-    path = _project_root() / 'logs' / 'yuanbao_free_api_qrcode.png'
+    path = get_shared_root_dir() / 'yuanbao_free_api' / 'qrcode.png'
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
-
-
-def _find_bundle_root(extract_root: Path) -> Optional[Path]:
-    candidates = [extract_root]
-    candidates.extend(path for path in extract_root.iterdir() if path.is_dir())
-    for candidate in candidates:
-        if all((candidate / name).exists() for name in _SERVICE_REQUIRED_FILES):
-            return candidate
-    for candidate in extract_root.rglob('*'):
-        if candidate.is_dir() and all((candidate / name).exists() for name in _SERVICE_REQUIRED_FILES):
-            return candidate
-    return None
 
 
 def _ensure_service_bundle_extracted() -> bool:
     if all((_service_dir() / name).exists() for name in _SERVICE_REQUIRED_FILES):
         return True
-
-    archive_path = _bundled_archive_path()
-    if not archive_path.exists():
-        logger.warning('[YuanbaoFreeApiService] 未找到内置服务压缩包: %s', archive_path)
-        return False
-
-    temp_root = _project_root() / 'services' / '.yuanbao_extract_tmp'
-    extract_root = temp_root / 'extract'
-    try:
-        if temp_root.exists():
-            import shutil
-            shutil.rmtree(temp_root, ignore_errors=True)
-        extract_root.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(archive_path, 'r') as zf:
-            zf.extractall(extract_root)
-        bundle_root = _find_bundle_root(extract_root)
-        if bundle_root is None:
-            raise RuntimeError('服务压缩包内缺少 app.py / requirements.txt')
-        if _service_dir().exists():
-            import shutil
-            shutil.rmtree(_service_dir(), ignore_errors=True)
-        _service_dir().parent.mkdir(parents=True, exist_ok=True)
-        import shutil
-        shutil.move(str(bundle_root), str(_service_dir()))
-        logger.info('[YuanbaoFreeApiService] 已从内置压缩包解压服务目录: %s', _service_dir())
-        return True
-    except Exception as exc:
-        logger.error('[YuanbaoFreeApiService] 解压内置服务包失败: %s', exc)
-        return False
-    finally:
-        if temp_root.exists():
-            import shutil
-            shutil.rmtree(temp_root, ignore_errors=True)
+    logger.warning(
+        '[YuanbaoFreeApiService] 发行包缺少受版本控制的服务目录: %s；'
+        '已拒绝下载或解压未经校验的外部源码',
+        _service_dir(),
+    )
+    return False
 
 
 def _launcher_python() -> str:
@@ -131,6 +87,25 @@ def _launcher_python() -> str:
     return str(executable)
 
 
+def _launcher_command(port: int) -> list[str]:
+    if getattr(sys, 'frozen', False):
+        return [
+            str(Path(sys.executable)),
+            '--yuanbao-service',
+            str(port),
+        ]
+    return [
+        _launcher_python(),
+        '-m',
+        'uvicorn',
+        'app:app',
+        '--host',
+        '127.0.0.1',
+        '--port',
+        str(port),
+    ]
+
+
 def _build_page_url(agent_id: str, login_url: str) -> str:
     text = str(login_url or '').strip()
     if text.startswith('http://') or text.startswith('https://'):
@@ -140,20 +115,37 @@ def _build_page_url(agent_id: str, login_url: str) -> str:
     return f'https://yuanbao.tencent.com/chat/{agent_id}'
 
 
+def _configured_api_key() -> str:
+    active = oc.get_active_config() if hasattr(oc, 'get_active_config') else {}
+    return str(
+        (active or {}).get('api_key')
+        or getattr(oc, 'API_KEY', '')
+        or ''
+    ).strip()
+
+
+def _control_headers() -> Dict[str, str]:
+    api_key = _configured_api_key()
+    return {'Authorization': f'Bearer {api_key}'} if api_key else {}
+
+
 def _build_service_env() -> Dict[str, str]:
     options = getattr(oc, 'YUANBAO_FREE_API', {}) or {}
-    active = oc.get_active_config() if hasattr(oc, 'get_active_config') else {}
-    api_key = str((active or {}).get('api_key') or getattr(oc, 'API_KEY', '') or '').strip()
+    api_key = _configured_api_key()
     agent_id = str(options.get('agent_id', '') or 'naQivTmsDa').strip() or 'naQivTmsDa'
     page_url = _build_page_url(agent_id, str(options.get('login_url', '') or '').strip())
 
     env = os.environ.copy()
     env['PYTHONIOENCODING'] = 'utf-8'
     env.setdefault('PYTHONUNBUFFERED', '1')
-    env['API_KEYS'] = api_key or 'sk-local-placeholder'
+    env['API_KEYS'] = api_key
     env['AGENT_ID'] = agent_id
     env['PAGE_URL'] = page_url
     env['QRCODE_PATH'] = str(_qrcode_path())
+    env['STORAGE_STATE_PATH'] = str(
+        get_shared_root_dir() / 'yuanbao_free_api' / 'storage_state.json'
+    )
+    env['AEMEATH_YUANBAO_BOOT_LOG'] = str(_log_path())
     return env
 
 
@@ -173,7 +165,12 @@ def _parse_local_target() -> Optional[Tuple[str, int]]:
     host = (parsed.hostname or '').strip().lower()
     if host not in ('127.0.0.1', 'localhost'):
         return None
-    port = int(parsed.port or (443 if parsed.scheme == 'https' else 80))
+    try:
+        port = int(parsed.port or (443 if parsed.scheme == 'https' else 80))
+    except ValueError:
+        return None
+    if not (1 <= port <= 65535):
+        return None
     return host, port
 
 
@@ -206,7 +203,11 @@ def _logout_url(host: str, port: int) -> str:
 
 
 def _http_json(url: str, *, method: str = 'GET', timeout: float = 5.0) -> Optional[Dict[str, object]]:
-    request = Request(url, method=method.upper())
+    request = Request(
+        url,
+        method=method.upper(),
+        headers=_control_headers(),
+    )
     if method.upper() == 'POST':
         request.add_header('Content-Type', 'application/json')
         request.data = b'{}'
@@ -227,7 +228,11 @@ def _probe_status_endpoint(host: str, port: int, timeout: float = 3.0) -> Tuple[
     if not _can_connect(host, port, timeout=min(timeout, 1.0)):
         return 'offline', None
 
-    request = Request(_status_url(host, port), method='GET')
+    request = Request(
+        _status_url(host, port),
+        method='GET',
+        headers=_control_headers(),
+    )
     try:
         with urlopen(request, timeout=timeout) as response:
             charset = response.headers.get_content_charset() or 'utf-8'
@@ -242,6 +247,8 @@ def _probe_status_endpoint(host: str, port: int, timeout: float = 3.0) -> Tuple[
         logger.debug('[YuanbaoFreeApiService] HTTP GET %s failed: %s', _status_url(host, port), exc)
         if exc.code == 404:
             return 'missing', None
+        if exc.code in (401, 403):
+            return 'unauthorized', None
         return 'http_error', None
     except (OSError, URLError, ValueError) as exc:
         logger.debug('[YuanbaoFreeApiService] HTTP GET %s failed: %s', _status_url(host, port), exc)
@@ -331,58 +338,6 @@ def _format_yuanbao_missing_deps_hint(modules: list[str]) -> str:
     )
 
 
-def _find_listener_pids(host: str, port: int) -> list[int]:
-    target_suffixes = {f'{host}:{port}', f'127.0.0.1:{port}', f'localhost:{port}', f'0.0.0.0:{port}'}
-    try:
-        result = _subprocess_run_hidden(
-            ['netstat', '-ano', '-p', 'tcp'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            encoding='utf-8',
-            errors='ignore',
-            timeout=8,
-            check=False,
-        )
-    except Exception as exc:
-        logger.debug('[YuanbaoFreeApiService] 查询监听端口失败: %s', exc)
-        return []
-
-    pids: list[int] = []
-    for raw_line in result.stdout.splitlines():
-        line = raw_line.strip()
-        if 'LISTENING' not in line.upper():
-            continue
-        parts = line.split()
-        if len(parts) < 5:
-            continue
-        local_addr = parts[1].strip().lower()
-        if not any(local_addr.endswith(suffix.lower()) for suffix in target_suffixes):
-            continue
-        try:
-            pid = int(parts[-1])
-        except ValueError:
-            continue
-        if pid > 0 and pid not in pids:
-            pids.append(pid)
-    return pids
-
-
-def _kill_process_by_pid(pid: int) -> bool:
-    try:
-        result = _subprocess_run_hidden(
-            ['taskkill', '/PID', str(pid), '/T', '/F'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=8,
-            check=False,
-        )
-        return result.returncode == 0
-    except Exception as exc:
-        logger.debug('[YuanbaoFreeApiService] 结束进程失败 pid=%s err=%s', pid, exc)
-        return False
-
-
 class YuanbaoFreeApiService:
     def __init__(self):
         self._ec = get_event_center()
@@ -390,6 +345,7 @@ class YuanbaoFreeApiService:
         self._login_monitor_lock = threading.RLock()
         self._process: Optional[subprocess.Popen] = None
         self._login_monitor_thread: Optional[threading.Thread] = None
+        self._login_monitor_stop = threading.Event()
         self._started_by_app = False
         self._ec.subscribe(EventType.APP_PRE_START, self._on_app_pre_start)
 
@@ -417,7 +373,7 @@ class YuanbaoFreeApiService:
             from lib.script.ui.yuanbao_login_dialog import init_yuanbao_login_dialog
             init_yuanbao_login_dialog()
         except Exception as exc:
-            logger.debug('[YuanbaoFreeApiService] ???????????: %s', exc)
+            logger.debug('[YuanbaoFreeApiService] 初始化登录对话框失败: %s', exc)
 
     def _publish_login_dialog_show(self, status: Optional[Dict[str, object]] = None) -> None:
         self._ensure_login_dialog()
@@ -445,6 +401,7 @@ class YuanbaoFreeApiService:
             thread = self._login_monitor_thread
             if thread is not None and thread.is_alive():
                 return
+            self._login_monitor_stop.clear()
             thread = threading.Thread(
                 target=self._run_login_monitor,
                 args=(host, port),
@@ -454,11 +411,29 @@ class YuanbaoFreeApiService:
             self._login_monitor_thread = thread
             thread.start()
 
+    def _stop_login_monitor(self, timeout: float = 3.0) -> bool:
+        self._login_monitor_stop.set()
+        with self._login_monitor_lock:
+            thread = self._login_monitor_thread
+        if thread is None:
+            return True
+        if thread is not threading.current_thread():
+            thread.join(timeout=max(0.0, timeout))
+        stopped = not thread.is_alive()
+        if stopped:
+            with self._login_monitor_lock:
+                if self._login_monitor_thread is thread:
+                    self._login_monitor_thread = None
+        return stopped
+
     def _run_login_monitor(self, host: str, port: int) -> None:
         deadline = time.monotonic() + _LOGIN_MONITOR_SECS
         last_status: Optional[Dict[str, object]] = None
         try:
-            while time.monotonic() < deadline:
+            while (
+                time.monotonic() < deadline
+                and not self._login_monitor_stop.is_set()
+            ):
                 status = _fetch_service_status(host, port, timeout=2.0)
                 if status is not None:
                     last_status = status
@@ -467,7 +442,7 @@ class YuanbaoFreeApiService:
                         self._publish_status_hint(status)
                         self._publish_login_dialog_hide()
                         return
-                time.sleep(_POLL_INTERVAL_SECS)
+                self._login_monitor_stop.wait(_POLL_INTERVAL_SECS)
         finally:
             with self._login_monitor_lock:
                 current = threading.current_thread()
@@ -506,6 +481,9 @@ class YuanbaoFreeApiService:
 
     def stop_login_flow(self) -> Dict[str, object]:
         self._publish_login_dialog_hide()
+        monitor_stopped = self._stop_login_monitor()
+        if not monitor_stopped:
+            logger.warning('[YuanbaoFreeApiService] 元宝登录监控线程未在超时内结束')
         target = _parse_local_target()
         result: Dict[str, object] = {'success': True, 'message': 'stopped'}
         if target is not None:
@@ -513,8 +491,6 @@ class YuanbaoFreeApiService:
             logout_result = _request_service_logout(host, port, timeout=8.0)
             if isinstance(logout_result, dict):
                 result.update(logout_result)
-        with self._login_monitor_lock:
-            self._login_monitor_thread = None
         with self._proc_lock:
             proc = self._process
             started = self._started_by_app
@@ -522,14 +498,6 @@ class YuanbaoFreeApiService:
             self._started_by_app = False
         if started and proc is not None:
             self._terminate_process_tree(proc)
-        if target is not None:
-            host, port = target
-            for pid in _find_listener_pids(host, port):
-                if proc is not None and pid == proc.pid:
-                    continue
-                if pid == os.getpid():
-                    continue
-                _kill_process_by_pid(pid)
         return result
 
     def begin_login_flow(self) -> Dict[str, object]:
@@ -619,57 +587,62 @@ class YuanbaoFreeApiService:
         if state == 'ok' and status is not None:
             logger.info('[YuanbaoFreeApiService] 检测到元宝服务已在运行: %s:%s status=%s', host, port, status)
             return status
-        if state == 'missing':
-            logger.warning('[YuanbaoFreeApiService] %s:%s 存在旧版或错误服务，占用了端口但缺少 %s', host, port, _STATUS_ENDPOINT)
-            if self._terminate_conflicting_listener(host, port):
-                time.sleep(1.0)
+        if state not in ('offline', 'ok'):
+            with self._proc_lock:
+                proc = self._process
+                owned_listener = bool(
+                    self._started_by_app
+                    and proc is not None
+                    and proc.poll() is None
+                )
+            if owned_listener:
+                logger.warning(
+                    '[YuanbaoFreeApiService] 自有服务状态异常（%s），正在安全重启',
+                    state,
+                )
+                self._stop_owned_process()
+                if not self._start_service_process(host, port):
+                    return None
+                return self._wait_for_status_endpoint(host, port)
+            logger.warning(
+                '[YuanbaoFreeApiService] %s:%s 已被其他或不兼容服务占用；'
+                '状态=%s，拒绝结束未知进程',
+                host,
+                port,
+                state,
+            )
+            self._ec.publish(Event(EventType.INFORMATION, {
+                'text': f'端口 {port} 已被其他服务占用。为避免误关程序，爱弥斯没有自动结束该进程；请更换端口或手动确认占用者。',
+                'min': 24,
+                'max': 300,
+                'particle': False,
+            }))
+            return None
         if not self._start_service_process(host, port):
             return None
         return self._wait_for_status_endpoint(host, port)
 
-    def _terminate_conflicting_listener(self, host: str, port: int) -> bool:
-        pids = _find_listener_pids(host, port)
-        if not pids:
-            return False
-
-        current_pid = os.getpid()
-        killed = False
-        for pid in pids:
-            if pid == current_pid:
-                continue
-            if _kill_process_by_pid(pid):
-                killed = True
-                logger.warning('[YuanbaoFreeApiService] 已结束占用 %s:%s 的旧进程 pid=%s', host, port, pid)
-
-        if killed:
-            self._ec.publish(Event(EventType.INFORMATION, {
-                'text': f'检测到旧版元宝服务占用 {port} 端口，已自动清理并准备重启。',
-                'min': 18,
-                'max': 200,
-                'particle': False,
-            }))
-        return killed
-
     def _wait_for_status_endpoint(self, host: str, port: int) -> Optional[Dict[str, object]]:
         deadline = time.monotonic() + _STARTUP_WAIT_SECS
-        restarted_conflict = False
         while time.monotonic() < deadline:
             state, status = _probe_status_endpoint(host, port, timeout=2.0)
             if state == 'ok' and status is not None:
                 logger.info('[YuanbaoFreeApiService] 元宝服务状态接口已就绪: %s', status)
                 return status
-            if state == 'missing' and not restarted_conflict:
-                restarted_conflict = True
-                if self._terminate_conflicting_listener(host, port):
-                    if not self._start_service_process(host, port):
-                        break
-                    time.sleep(1.0)
-                    continue
+            if state == 'missing':
+                logger.error(
+                    '[YuanbaoFreeApiService] 端口已响应但缺少状态接口，'
+                    '拒绝结束未知进程: %s:%s',
+                    host,
+                    port,
+                )
+                break
             with self._proc_lock:
                 proc = self._process
                 if proc is not None and proc.poll() is not None:
                     break
             time.sleep(_POLL_INTERVAL_SECS)
+        self._stop_owned_process()
         logger.error('[YuanbaoFreeApiService] 元宝服务状态接口启动失败，目标=%s:%s 日志=%s', host, port, _log_path())
         self._ec.publish(Event(EventType.INFORMATION, {
             'text': '元宝服务未能正常启动，请检查 logs/yuanbao_free_api_launcher.log。',
@@ -727,6 +700,22 @@ class YuanbaoFreeApiService:
 
     def _start_service_process(self, host: str, port: int) -> bool:
         _remove_qrcode_if_exists()
+        api_key = _configured_api_key()
+        if (
+            not api_key
+            or ',' in api_key
+            or any(char.isspace() for char in api_key)
+        ):
+            logger.warning(
+                '[YuanbaoFreeApiService] 本地服务访问密钥为空或格式无效，已拒绝启动'
+            )
+            self._ec.publish(Event(EventType.INFORMATION, {
+                'text': '请先在 AI 设置中填写不含逗号或空白字符的元宝本地服务访问密钥。',
+                'min': 20,
+                'max': 260,
+                'particle': False,
+            }))
+            return False
         missing_modules = _missing_runtime_modules()
         if missing_modules:
             text = _format_yuanbao_missing_deps_hint(missing_modules)
@@ -745,7 +734,7 @@ class YuanbaoFreeApiService:
         if not entry.exists():
             logger.warning('[YuanbaoFreeApiService] 未找到本地中转入口: %s', entry)
             self._ec.publish(Event(EventType.INFORMATION, {
-                'text': '未找到 yuanbao-free-api 服务目录或内置压缩包，请先检查 services/bundles。',
+                'text': '发行包缺少 yuanbao-free-api 服务目录，请重新获取完整的爱弥斯发行包。',
                 'min': 16,
                 'max': 160,
                 'particle': False,
@@ -760,7 +749,7 @@ class YuanbaoFreeApiService:
             create_no_window = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
             try:
                 self._process = subprocess.Popen(
-                    [_launcher_python(), '-m', 'uvicorn', 'app:app', '--host', '127.0.0.1', '--port', str(port)],
+                    _launcher_command(port),
                     cwd=str(_service_dir()),
                     env=env,
                     stdin=subprocess.DEVNULL,
@@ -795,6 +784,7 @@ class YuanbaoFreeApiService:
             time.sleep(_POLL_INTERVAL_SECS)
 
         logger.error('[YuanbaoFreeApiService] 元宝服务启动超时或已退出，目标=%s:%s 日志=%s', host, port, _log_path())
+        self._stop_owned_process()
         self._ec.publish(Event(EventType.INFORMATION, {
             'text': '元宝服务未能成功启动，请检查 logs/yuanbao_free_api_launcher.log。',
             'min': 18,
@@ -806,9 +796,8 @@ class YuanbaoFreeApiService:
     def cleanup(self):
         self._ec.unsubscribe(EventType.APP_PRE_START, self._on_app_pre_start)
         self._publish_login_dialog_hide()
-
-        with self._login_monitor_lock:
-            self._login_monitor_thread = None
+        if not self._stop_login_monitor():
+            logger.warning('[YuanbaoFreeApiService] 清理时登录监控线程未在超时内结束')
 
         with self._proc_lock:
             proc = self._process
@@ -819,22 +808,14 @@ class YuanbaoFreeApiService:
         if started and proc is not None:
             self._terminate_process_tree(proc)
 
-        target = _parse_local_target()
-        if target is None:
-            return
-
-        host, port = target
-        state, status = _probe_status_endpoint(host, port, timeout=2.0)
-        if state != 'ok' or status is None:
-            return
-
-        for pid in _find_listener_pids(host, port):
-            if proc is not None and pid == proc.pid:
-                continue
-            if pid == os.getpid():
-                continue
-            if _kill_process_by_pid(pid):
-                logger.info('[YuanbaoFreeApiService] ???????????? pid=%s', pid)
+    def _stop_owned_process(self) -> None:
+        with self._proc_lock:
+            proc = self._process
+            started = self._started_by_app
+            self._process = None
+            self._started_by_app = False
+        if started and proc is not None:
+            self._terminate_process_tree(proc)
 
     @staticmethod
     def _terminate_process_tree(proc: subprocess.Popen) -> bool:

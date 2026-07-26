@@ -1,9 +1,9 @@
-"""????????"""
+"""统一配置兼容入口。"""
 
 from __future__ import annotations
 
 from config.font_config import FONT
-from config.config_runtime import DRAW, STARTUP
+from config.config_runtime import DRAW, SECURITY, STARTUP
 from config.config_ui import COLORS, UI_THEME, WINDOW, UI, BUBBLE_CONFIG, COMMAND_DIALOG
 from config.config_animation import ANIMATION, GIF_FILES, BEHAVIOR, PARTICLES, PHYSICS
 from config.config_entities import SNOW_LEOPARD, SNOW_PILE, SOFA, MORTOR, CLOCK, SPEAKER, OBJECTS

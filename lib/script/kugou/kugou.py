@@ -893,7 +893,7 @@ class KugouClient:
                 if not payload:
                     continue
             except Exception as e:
-                logger.debug("[KugouClient] songinfo v2 ???? url=%s: %s", api_url, e)
+                logger.debug("[KugouClient] songinfo v2 请求失败 url=%s: %s", api_url, e)
                 continue
 
             data = payload.get("data")
@@ -1123,7 +1123,7 @@ class KugouClient:
         detail = {
             "hash": hash_text,
             "title": title or hash_text or mix_id,
-            "artist": artist or "????",
+            "artist": artist or "未知歌手",
             "duration_ms": duration_ms if duration_ms > 0 else None,
             "album_id": self._safe_positive_int(album_id or raw_data.get("album_id")),
             "audio_id": self._safe_positive_int(
@@ -1323,7 +1323,7 @@ class KugouClient:
         return {
             "hash": song_hash,
             "title": title or song_hash,
-            "artist": artist or "????",
+            "artist": artist or "未知歌手",
             "duration_ms": duration_ms if duration_ms > 0 else None,
             "album_id": album_id,
             "audio_id": album_audio_id,
@@ -1673,7 +1673,7 @@ class KugouClient:
     def poll_login_qr(self, qr_key: str) -> dict[str, Any]:
         key = str(qr_key or "").strip()
         if not key:
-            return {"status": -1, "message": "浜岀淮鐮?key 涓虹┖"}
+            return {"status": -1, "message": "二维码 key 为空"}
         params = self._build_signed_params(
             {
                 "appid": self._APPID,

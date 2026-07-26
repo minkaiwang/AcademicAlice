@@ -1,4 +1,4 @@
-"""?????????"""
+"""多模态消息构建辅助。"""
 
 from .vision_capture import capture_screen
 from .vision_codec import (

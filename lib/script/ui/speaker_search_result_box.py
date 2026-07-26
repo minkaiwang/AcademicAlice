@@ -116,21 +116,21 @@ class SpeakerSearchResultBox(QWidget):
     # ==================================================================
 
     def clear_results(self) -> None:
-        """???????"""
+        """清空搜索结果。"""
         self._items    = []
         self._selected = -1
         self._page     = 0
         self._refresh_view(reposition=False)
 
     def set_results(self, items: list) -> None:
-        """?????????items: [(track_ref, display_text), ...]"""
+        """设置搜索结果；items 为 (track_ref, display_text) 列表。"""
         self._items    = items
         self._selected = 0 if items else -1
         self._page     = 0
         self._refresh_view()
 
     def set_searching(self, state: bool) -> None:
-        """??"???"????? loading ?????"""
+        """切换搜索中状态并刷新加载提示。"""
         self._searching = state
         self._refresh_view()
 
@@ -145,15 +145,15 @@ class SpeakerSearchResultBox(QWidget):
             self.update()
 
     def turn_page(self, direction: int) -> None:
-        """???direction: -1 ??? / +1 ????????????"""
+        """翻页；direction 为 -1 或 +1，越界时循环。"""
         if self._searching or not self._items:
             return
         max_page = max(0, (len(self._items) - 1) // _PAGE_SIZE)
         if max_page == 0:
-            return  # ??????????
+            return  # 只有一页，无需翻页
 
         new_page = self._page + direction
-        # ????????????????
+        # 首尾页循环切换。
         if new_page < 0:
             new_page = max_page
         elif new_page > max_page:

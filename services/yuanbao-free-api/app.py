@@ -5,8 +5,10 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from src.config import settings
+from src.dependencies.auth import require_api_key
 from src.routers import chat, upload
 from src.services.browser import browser_manager
 
@@ -36,6 +38,10 @@ async def _ensure_login_task(*, force: bool = False) -> tuple[asyncio.Task, bool
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """应用生命周期事件处理器"""
+    if not settings.api_keys_list:
+        logger.error("[Startup] API_KEYS 为空；服务保持拒绝访问且不启动浏览器")
+        yield
+        return
     logger.info("[Startup] 正在初始化浏览器...")
     try:
         _, started = await _ensure_login_task(force=False)
@@ -65,7 +71,7 @@ app.include_router(upload.router)
 
 
 @app.get("/fsv/status")
-async def fsv_status():
+async def fsv_status(_token: str = Depends(require_api_key)):
     status = dict(browser_manager.status())
     qrcode_path = Path(str(status.get("qrcode_path") or "")).expanduser()
     status["qrcode_exists"] = bool(qrcode_path and qrcode_path.exists())
@@ -74,7 +80,7 @@ async def fsv_status():
 
 
 @app.post("/fsv/login")
-async def fsv_login():
+async def fsv_login(_token: str = Depends(require_api_key)):
     task, started = await _ensure_login_task(force=True)
     status = dict(browser_manager.status())
     qrcode_path = Path(str(status.get("qrcode_path") or "")).expanduser()
@@ -90,7 +96,8 @@ async def fsv_login():
             result = task.result()
         except Exception as exc:
             status["success"] = False
-            status["message"] = str(exc)
+            logger.error("[Login] 登录任务失败: %s", type(exc).__name__)
+            status["message"] = "login_failed"
         else:
             if isinstance(result, dict):
                 status.update(result)
@@ -100,7 +107,7 @@ async def fsv_login():
 
 
 @app.post("/fsv/logout")
-async def fsv_logout():
+async def fsv_logout(_token: str = Depends(require_api_key)):
     global _login_task
     if _login_task is not None and not _login_task.done():
         _login_task.cancel()
@@ -116,4 +123,4 @@ async def fsv_logout():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=False)

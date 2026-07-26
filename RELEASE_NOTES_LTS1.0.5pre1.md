@@ -29,8 +29,8 @@
 
 | 附件 | 适用对象 |
 |------|----------|
-| `FlyingSnowVelvet-LTS1.0.5pre1.zip` | 开发者 / 自带 Python：解压后运行 `安装依赖.bat` → `启动程序.bat` |
-| `AemeathDeskPet` 文件夹（若另附） | 终端用户：解压整文件夹后运行 `AemeathDeskPet.exe`，**无需安装 Python** |
+| `AemeathDeskPet-LTS1.0.5pre1.zip` + 同名 `.sha256` | 开发者 / 自带 Python 3.11–3.13：解压后运行 `安装依赖.bat` → `启动程序.bat` |
+| `AemeathDeskPet-LTS1.0.5pre1-green.zip` + 同名 `.sha256`（若另附） | 终端用户：解压后按包内说明启动，**无需另装 Python** |
 
 文档门户：解压后打开 **`AA使用必读.html`**。
 

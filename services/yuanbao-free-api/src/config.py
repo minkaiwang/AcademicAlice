@@ -1,6 +1,7 @@
 """应用配置模块"""
 
 import logging
+import secrets
 from typing import List
 
 from pydantic import Field
@@ -13,7 +14,7 @@ class Settings(BaseSettings):
     """应用配置"""
 
     api_keys: str = Field(
-        default="sk-your-api-key-here",
+        default="",
         description="允许的 API Key 列表（逗号分隔）",
     )
     agent_id: str = "naQivTmsDa"
@@ -50,4 +51,8 @@ def validate_api_key(api_key: str) -> bool:
     Returns:
         bool: 验证是否通过
     """
-    return api_key in settings.api_keys_list
+    candidate = str(api_key or "")
+    return any(
+        secrets.compare_digest(candidate, configured)
+        for configured in settings.api_keys_list
+    )

@@ -1,7 +1,8 @@
 comtypes>=1.1.11
 fastapi>=0.134.0
 httpx>=0.28.1
-musicdl>=1.4.6
+# musicdl is intentionally not installed: 2.13.3 requires cryptography<47,
+# a range affected by GHSA-537c-gmf6-5ccf. QQ/Kugou degrade to direct APIs.
 mutagen>=1.47.0
 openai>=2.24.0
 opencv_python>=4.13.0.92
@@ -9,14 +10,14 @@ packaging>=23.2
 Pillow>=10.2.0
 playwright>=1.50.0
 pydantic>=2.12.5
-pydantic_settings>=2.13.1
+pydantic_settings>=2.14.2
 pygame>=2.5.2
-pyncm>=1.7.5
+./vendor/pyncm-1.8.1-py3-none-any.whl
 pycaw>=20181226
 PyQt5>=5.15.10
 pywin32>=306
 qrcode>=7.4.2
-requests>=2.31.0
+requests>=2.34.2
 sounddevice>=0.4.6
 sse_starlette>=3.3.2
 uvicorn>=0.41.0

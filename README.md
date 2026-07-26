@@ -94,7 +94,7 @@ cd AemeathDeskPet
 ```
 
 ```text
-# 建议使用 Python 3.10+，依赖见 install/ 目录说明
+# 支持 Python 3.11–3.13，依赖见 install/ 目录说明
 python install/install_deps.py
 # 或双击根目录「安装依赖.bat」（会调用 install/安装依赖.bat）
 # 按 PROGRESS.md 与 resc/workbench/README.txt 构建工作台 CSS（若修改 HTML）
@@ -122,7 +122,12 @@ python install/install_deps.py
 | `README.md` | 本页：仓库级介绍与合并说明 |
 | `ACKNOWLEDGMENTS.md` | **上游致谢与整合者说明（发布必附）** |
 | `PRODUCT.md` | 品牌、中文介绍稿、用户可见文案索引 |
-| `PROGRESS.md` | 技术 SSOT、里程碑、决策记录 |
+| `PROJECT_MANAGEMENT.md` | **当前项目入口**：状态、问题看板、风险与完成定义 |
+| `AUDIT_REPORT_2026-07-26.md` | 当前工作区深度审计、证据与问题分级 |
+| `CHANGE_HISTORY.md` | 工程修改、验证与交付流水 |
+| `ROADMAP.md` | 稳定化门禁与未来阶段规划 |
+| `PROGRESS.md` | 技术设计、历史里程碑与 ADR |
+| `CHANGELOG.md` | 面向用户的版本变化 |
 | `AA使用必读.html` | 脚本生成门户：贡献原文、`doc/*.txt`（无赞助/打赏区块） |
 | `doc/合并项目与使用入口.txt` | 合并来源、入口、许可提醒（纯文本） |
 
@@ -130,7 +135,16 @@ python install/install_deps.py
 
 ## 隐私与网络
 
-部分 AI 能力需联网；工作台图表等可能依赖公共 CDN（断网时可能降级）。请勿将敏感论文全文默认发往外部服务；具体以各设置项与后续 `PROGRESS.md` 约定为准。
+科研工作台的 Tailwind、Chart.js 与 Font Awesome 已随仓库本地提供，断网时
+核心页面、图标和图表仍可使用。OpenAI 兼容接口、元宝登录、音乐检索和更新
+检查等能力需要联网；请勿将敏感论文全文默认发送给外部服务。
+
+工作台主状态写入用户共享数据根下的 `workbench/state.json`，采用原子写入并
+保留轮换备份；浏览器 `localStorage` 只用于迁移和降级。新安装默认共享根为
+`%LOCALAPPDATA%\AemeathDeskPet`，若旧版
+`{SystemDrive}\AemeathDeskPet` 已存在则继续沿用，也可通过
+`AEMEATH_SHARED_ROOT` 显式指定。API Key 等敏感值使用当前 Windows 用户的
+DPAPI 加密，不写回受 Git 跟踪的 Python 配置。
 
 ---
 

@@ -1662,7 +1662,6 @@ class _LoginMixin:
         last_cookie_map: dict[str, str] = {}
         captured_cookie_map: dict[str, str] = {}
         promoted = False
-        should_hide_qr = False
         basic_auth_since: float | None = None
         last_qr_refresh_at: float | None = None
         last_qr_signature = ''
@@ -1748,6 +1747,7 @@ class _LoginMixin:
             self._publish_qr_status('二维码已生成，请使用QQ扫码登录')
 
             deadline = time.monotonic() + max(90, int(_QR_LOGIN_TIMEOUT))
+            has_uin = False
             while time.monotonic() < deadline:
                 if self._qr_login_cancel.is_set():
                     self._publish_qr_status('已取消QQ登录')
@@ -1755,7 +1755,7 @@ class _LoginMixin:
 
                 current_qr_signature = self._qq_current_qrcode_signature(page)
                 now = time.monotonic()
-                if (not has_uin if 'has_uin' in locals() else True):
+                if not has_uin:
                     should_refresh_snapshot = False
                     if current_qr_signature and current_qr_signature != last_qr_signature:
                         should_refresh_snapshot = True
@@ -1828,7 +1828,6 @@ class _LoginMixin:
                     nickname = official_nickname or self._qq_nickname_hint(client.get_session())
                     self._set_login_state(True, {'nickname': nickname}, provider='qq')
                     self._save_qq_login_cache()
-                    should_hide_qr = True
                     self._publish_qr_status('QQ音乐登录成功，已同步完整权限')
                     self._show_info(self._login_success_message('QQ平台', nickname))
                     return

@@ -172,10 +172,6 @@ class ClickThroughButton(QWidget):
             if anchor_id == 'all':
                 # command_dialog 的新位置（左上角坐标）
                 cmd_pos = event.data.get('anchor_point')
-                # 获取 command_dialog 的尺寸来计算 top_left 锚点
-                from config.config import UI
-                cmd_width = UI['cmd_window_width']
-                cmd_height = UI['cmd_window_height']
                 # 计算 top_left 锚点位置（就是左上角）
                 new_anchor_point = QPoint(
                     cmd_pos.x(),  # top_left 锚点的 X 坐标
@@ -187,7 +183,7 @@ class ClickThroughButton(QWidget):
                     self._update_position()
 
     def _on_ui_create(self, event):
-        """UI ?????? - ???????"""
+        """响应 UI 锚点查询。"""
         target_ui_id = event.data.get('ui_id')
         request_anchor_id = event.data.get('anchor_id')
 

@@ -1,4 +1,4 @@
-"""????????"""
+"""语音与音频功能配置。"""
 
 from __future__ import annotations
 
