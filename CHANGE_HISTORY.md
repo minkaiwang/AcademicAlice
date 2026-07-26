@@ -14,8 +14,14 @@
   Release 正文使用 `RELEASE_NOTES_LTS1.0.5pre2.md`；
 - 目标为已通过 Python 3.11–3.13 CI 的稳定化分支提交，草稿 PR #1 保持
   开启以继续代码评审；
-- 本次不手工上传 ZIP、EXE 或其他二进制附件；受限美术 / 音频和元宝上游
-  许可证清关前，公开页面仅提供 GitHub 自动生成的源代码归档。
+- 预发布建立后，维护者进一步明确授权上传开发者源码包；正式生成的 ZIP 含
+  868 个 manifest 文件项，大小 36,480,438 bytes，SHA256 为
+  `647ba439c744f2260c6ec5f3d8e4dd3a9f51f4754926113a7adb8e5fd3ad98fb`；
+- ZIP 完整性、manifest 路径 / 大小一致性和敏感运行文件排除检查通过；
+  `tests/test_packaging.py` 为 7 passed、1 skipped，跳过项仍是本机无符号
+  链接权限；
+- Release 已上传 ZIP、`.zip.sha256`、manifest 和使用说明；GitHub 将独立
+  中文说明文件名显示为 `AA.html`。未上传绿色包或 EXE。
 
 ### REL-CI-001：GitHub Actions 远程解析修正
 

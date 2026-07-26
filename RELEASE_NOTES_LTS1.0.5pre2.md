@@ -68,14 +68,18 @@
 - AI、元宝扫码、QQ / 网易 / 酷狗、麦克风、Vosk、GSVmove 与 30–60 分钟常驻
   仍需维护者在真实账号和硬件上验收。
 
-## 下载附件命名
+## 下载附件
 
-仅在许可关卡通过并完成最终确认后生成或上传：
+本次在维护者明确授权后上传：
 
 | 附件 | 适用对象 |
 |---|---|
-| `AemeathDeskPet-LTS1.0.5pre2.zip` + 同名 `.sha256` | 开发者 / 自带 Python |
-| `AemeathDeskPet-LTS1.0.5pre2-green.zip` + 同名 `.sha256` | 无需另装 Python 的终端用户 |
+| `AemeathDeskPet-LTS1.0.5pre2.zip` | 开发者 / 自带 Python |
+| `AemeathDeskPet-LTS1.0.5pre2.zip.sha256` | ZIP 的 SHA256 校验 |
+| `AemeathDeskPet-LTS1.0.5pre2-manifest.json` | ZIP 文件清单与大小 |
+| `AA.html` | GitHub 显示的独立使用说明；ZIP 内仍为 `AA使用必读.html` |
 
-源码分支可以先进入代码评审并创建不含手工附件的 GitHub 预发布；许可未清关时
-不上传公开 ZIP、EXE 或其他二进制发行包。
+源码 ZIP 的 SHA256 为
+`647ba439c744f2260c6ec5f3d8e4dd3a9f51f4754926113a7adb8e5fd3ad98fb`。
+当前未上传 `AemeathDeskPet-LTS1.0.5pre2-green.zip` 或 EXE；绿色免 Python
+发行仍需完成许可关卡和最终验收。
