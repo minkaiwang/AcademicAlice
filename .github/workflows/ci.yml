@@ -19,7 +19,6 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     env:
       PYTHONUTF8: "1"
-      AEMEATH_SHARED_ROOT: ${{ runner.temp }}\AemeathDeskPet
 
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +39,8 @@ jobs:
         run: python -m ruff check --select E9,F63,F7,F82,F841 config lib install scripts services tests
 
       - name: Run tests
+        env:
+          AEMEATH_SHARED_ROOT: ${{ runner.temp }}\AemeathDeskPet
         run: python -m pytest
 
       - name: Audit pinned embedded-service dependencies

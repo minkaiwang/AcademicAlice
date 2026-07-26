@@ -2,9 +2,21 @@
 
 > 本文件记录工程修复、验证与边界。面向用户的版本功能变化仍写
 > `CHANGELOG.md`；架构决策写 `PROGRESS.md`。当前候选版本为
-> `LTS1.0.5pre2`；本轮尚未提交、推送、Tag 或发布。
+> `LTS1.0.5pre2`；源码候选已提交并推送至草稿 PR #1，尚未合并、Tag
+> 或发布二进制附件。
 
 ## 2026-07-26
+
+### REL-CI-001：GitHub Actions 远程解析修正
+
+- 源码候选提交 `b3bca1c` 已推送至
+  `codex/lts1.0.5pre2-stabilization`，并创建草稿 PR #1；
+- 首次远程运行 `30207330138` 在创建 job 前失败：作业级 `env` 不支持
+  `runner.temp` 上下文，并非 pytest 或应用代码失败；
+- 将 `AEMEATH_SHARED_ROOT` 下移到 pytest 步骤的 `env`；该位置允许读取
+  `runner.temp`，同时继续把测试数据隔离在 runner 临时目录；
+- 后续远程结果以 PR #1 的 GitHub Actions Checks 为准；许可清关前仍不创建
+  Tag 或公开二进制 Release。
 
 ### REL-CANDIDATE-002：LTS1.0.5pre2 版本收口
 
